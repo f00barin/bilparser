@@ -331,10 +331,13 @@ class FirstOrderFeatureGenerator(feature_generator_base.FeatureGeneratorBase):
         Return a feature vector instance containing the features
         implied by edge list
         """
-        fv = []
+        fv = {}
 
-        for head, dep in edge_list:
-            fv += self.get_local_vector(head, dep)
+        for head, dep,label in edge_list:
+            if label in fv:
+                fv[label] += self.get_local_vector(head, dep)
+            else:
+                fv[label] = self.get_local_vector(head, dep)
         
         return fv
 

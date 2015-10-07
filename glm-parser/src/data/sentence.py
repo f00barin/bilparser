@@ -79,7 +79,7 @@ class Sentence():
     |                        set_current_global_vector()                    |
     +=======================================================================+
     """
-    
+
     def __init__(self, word_list, pos_list=None, edge_set=None, fgen=None):
         """
         Initialize a dependency tree. If you provide a sentence then the
@@ -116,7 +116,7 @@ class Sentence():
         self.f_gen = fgen(self)
 
         # Pre-compute the set of gold features
-        self.gold_global_vector = self.get_global_vector(self.edge_list_index_only)
+        self.gold_global_vector = self.get_global_vector(self.labeled_edges)
         # During initialization is has not been known yet. We will fill this later
         self.current_global_vector = None
 
@@ -175,7 +175,7 @@ class Sentence():
         second order sibling features, and third order features. We compute them
         separately, although there are options of computing them in single call,
         we choose not to use it regarding code readability.
-        
+
         :return: The global vector of the sentence with the current weight
         :rtype: list
         """
@@ -185,7 +185,7 @@ class Sentence():
         #return global_vector
 
 
-    def get_local_vector(self, 
+    def get_local_vector(self,
                          head_index,
                          dep_index,
                          another_index_list = [],
@@ -195,8 +195,8 @@ class Sentence():
 
         Argument another_index could be either sibling index or
         grand child index. It is implicitly defined by argument
-        feature_type. 
-        
+        feature_type.
+
         The last two arguments will not be used by english_
         1st_fgen
 
@@ -243,8 +243,8 @@ class Sentence():
         # Optimization: return a list to compute weight vector
         return second_order_fv
         '''
-        
-    
+
+
     def set_word_list(self,word_list):
         """
         :param word_list: A list of words. There is no __ROOT__
@@ -274,6 +274,10 @@ class Sentence():
         """
         self.edge_list = edge_list
         # Let's do it this way. SHOULD be refeactored later
+        self.labeled_edges = []
+        for (h,m),l in edge_list.iteritems():
+            self.labeled_edges.append((h,m,l))
+
         self.edge_list_index_only = edge_list.keys()
         self.edge_list_len = len(self.edge_list_index_only)
         return

@@ -38,10 +38,10 @@ class GlmParser():
             self.fgen = fgen
         else:
             raise ValueError("You need to specify a feature generator")
-        
+
         self.train_data_pool = DataPool(train_section, data_path, fgen=self.fgen)
         self.test_data_pool = DataPool(test_section, data_path, fgen=self.fgen)
-        
+
         self.parser = parser()
 
         if learner is not None:
@@ -51,18 +51,18 @@ class GlmParser():
             raise ValueError("You need to specify a learner")
 
         self.evaluator = Evaluator()
-       
+
     def sequential_train(self, train_section=[], max_iter=-1, d_filename=None, dump_freq = 1):
         if not train_section == []:
             train_data_pool = DataPool(train_section, self.data_path, fgen=self.fgen)
         else:
             train_data_pool = self.train_data_pool
-            
+
         if max_iter == -1:
             max_iter = self.max_iter
-            
+
         self.learner.sequential_learn(self.compute_argmax, train_data_pool, max_iter, d_filename, dump_freq)
-    
+
     def evaluate(self, training_time,  test_section=[]):
         if not test_section == []:
             test_data_pool = DataPool(test_section, self.data_path, fgen=self.fgen)
@@ -70,9 +70,21 @@ class GlmParser():
             test_data_pool = self.test_data_pool
 
         self.evaluator.evaluate(test_data_pool, self.parser, self.w_vector, training_time)
-        
+
+    def printParses(self, training_time,  test_section=[]):
+        if not test_section == []:
+            test_data_pool = DataPool(test_section, self.data_path, fgen=self.fgen)
+        else:
+            test_data_pool = self.test_data_pool
+
+        self.evaluator.printParse(test_data_pool, self.parser, self.w_vector, training_time)
+
+
+
+
     def compute_argmax(self, sentence):
-        current_edge_set = self.parser.parse(sentence, self.w_vector.get_vector_score)
+        current_edge_set = self.parser.parse(sentence, self.w_vector.get_best_label_score)
+
         sentence.set_current_global_vector(current_edge_set)
         current_global_vector = sentence.current_global_vector
 
@@ -83,7 +95,7 @@ HELP_MSG =\
 
 options:
     -h:     Print this help message
-    
+
     -b:     Begin section for training
             (You need to specify both begin and end section)
 
@@ -94,13 +106,13 @@ options:
             Use section id to specify them, separated with comma (,)
             i.e.  "-t 1,2,3,4,55"
             If not specified then no evaluation will be conducted
-    
+
     -p:     Path to data files (to the parent directory for all sections)
             default "./penn-wsj-deps/"
 
     -l:     Path to an existing weight vector dump file
             example: "./Weight.db"
-            
+
     -d:     Path for dumping weight vector. Please also specify a prefix
             of file names, which will be added with iteration count and
             ".db" suffix when dumping the file
@@ -168,7 +180,7 @@ options:
             analyzing feature usage and building feature caching utility.
             Upon exiting the main program will dump feature request information
             into a file "feature_request.log"
-    
+
 """
 
 def get_class_from_module(attr_name, module_path, module_name,
@@ -228,7 +240,7 @@ MINOR_VERSION = 0
 
 if __name__ == "__main__":
     import getopt, sys
-    
+
     train_begin = -1
     train_end = -1
     testsection = []
@@ -312,7 +324,7 @@ if __name__ == "__main__":
             else:
                 print "Invalid argument, try -h"
                 sys.exit(0)
-                
+
         gp = glm_parser(data_path=test_data_path, l_filename=l_filename,
                         learner=learner,
                         fgen=fgen,

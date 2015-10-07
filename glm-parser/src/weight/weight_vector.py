@@ -33,7 +33,7 @@ class WeightVector():
     store the features.
 
     Callables inside the class:
-              
+
     dump()  - Dump the content of the data object into memory. When we are using
               memory dict it will call Pickle to do that. When we are using
 
@@ -41,11 +41,11 @@ class WeightVector():
               memory dict it will call Pickle to do the load. And when we are
               using shelves it has no effect, since shelves itself is persistent
               object.
-    
+
     keys()  - Return a list of keys in the dictionary.
 
     has_key() - Check whether a given key is in the dictionary.
-    
+
     Please notice that there is no open() method as in other similar classes.
     Users must provide a file name as well as an operating mode to support
     both persistent and non-persistent (or semi-persistent) operations.
@@ -60,14 +60,16 @@ class WeightVector():
         a file name here in order to establish the connection to the database.
         :type filename: str
         """
-        
+
         # change to hvector
-        #self.data_dict = {}
-        self.data_dict = mydefaultdict(mydouble)
-        
+        self.data_dict = {}
+#        self.data_dict = mydefaultdict(mydouble)
+        self.labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
+        for l in self.labels:
+            self.data_dict[l] = mydefaultdict(mydouble)
         if not filename == None:
             self.load(filename)
-            
+
         return
 
     #def get_sub_vector(self, key_list):
@@ -76,10 +78,22 @@ class WeightVector():
     #    for k in key_list:
     #        sub_vector[k] = self.data_dict[k]
     #    return sub_vector
-        
-    def get_vector_score(self, fv):
-        score = self.data_dict.evaluate(fv)
+
+    def get_vector_score(self, fv, label):
+        score = self.data_dict[label].evaluate(fv)
         return score
+
+    def get_best_label_score(self, fv):
+        bestlabel = None
+        bestscore = None
+        for l in self.labels:
+            score = self.data_dict[l].evaluate(fv)
+            if bestscore == None or bestscore < score:
+                bestlabel = l
+                bestscore = score
+        return bestscore, bestlabel
+
+
 
     def load(self,filename):
         """
@@ -109,11 +123,11 @@ class WeightVector():
 
     def has_key(self,index):
         return self.data_dict.has_key(index)
-    
+
     def pop(self,key):
         self.data_dict.pop(key)
         return
-    
+
     def keys(self):
         """
         Return a list of dictionary keys. This operation is not as expensive

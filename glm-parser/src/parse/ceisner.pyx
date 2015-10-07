@@ -7,6 +7,7 @@ from libc.stdlib cimport malloc, calloc, free
 
 cdef struct EisnerNode:
     float score
+#    int label
     int mid_index
     
 #TODO try size_t
@@ -65,7 +66,7 @@ cdef class EisnerParser:
             s = modifier
             t = head
             
-        cdef float edge_score = arc_weight(sent.get_local_vector(head, modifier))
+        edge_score, max_label = arc_weight(sent.get_local_vector(head, modifier))
         cdef int max_index = s
         cdef float max_score = \
             self.e[s][s][1][0].score + self.e[s+1][t][0][0].score + edge_score
@@ -76,7 +77,8 @@ cdef class EisnerParser:
             if max_score < cur_score:
                 max_score = cur_score
                 max_index = q
-        return max_score, max_index 
+#        return max_score, max_index, max_label
+        return max_score, max_index
     
     cdef combine_left(self, int s, int t):        
         # s < t strictly
@@ -232,9 +234,11 @@ cdef class EisnerParser:
                 if t >= self.n:
                     break
 
+                #self.e[s][t][0][1].score, self.e[s][t][0][1].mid_index, self.e[s][t][0][1].label =\
                 self.e[s][t][0][1].score, self.e[s][t][0][1].mid_index =\
                     self.combine_triangle(t, s, arc_weight, sent)
-                self.e[s][t][1][1].score, self.e[s][t][1][1].mid_index =\
+                #self.e[s][t][1][1].score, self.e[s][t][1][1].mid_index, self.e[s][t][1][1].label  =\
+                self.e[s][t][1][1].score, self.e[s][t][1][1].mid_index   =\
                     self.combine_triangle(s, t, arc_weight, sent)
                 self.e[s][t][0][0].score, self.e[s][t][0][0].mid_index =\
                     self.combine_left(s, t)
@@ -243,6 +247,17 @@ cdef class EisnerParser:
        
         self.get_edge_list()       
         self.delete_eisner_matrix()
-
-        return self.edge_list
+        labelledEdges = []
+        for h,m in self.edge_list:
+#            if h < m:
+#                label = self.e[h][m][0][1].label
+#            else:
+#                label = self.e[h][m][1][1].label
+            tmp, label = arc_weight(sent.get_local_vector(h,m))
         
+            labelledEdges.append((h,m,label))
+        
+#        return self.edge_list
+        return labelledEdges
+        
+

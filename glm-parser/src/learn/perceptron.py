@@ -17,12 +17,12 @@ class PerceptronLearner():
     def sequential_learn(self, f_argmax, data_pool=None, max_iter=-1, d_filename=None, dump_freq = 1):
         if max_iter <= 0:
             max_iter = self.max_iter
-            
+
         logging.debug("Starting sequantial train...")
         for i in range(max_iter):
             logging.debug("Iteration: %d" % i)
             logging.debug("Data size: %d" % len(data_pool.data_list))
- 
+
             while data_pool.has_next_data():
                 data_instance = data_pool.get_next_data()
                 gold_global_vector = data_instance.gold_global_vector
@@ -37,7 +37,32 @@ class PerceptronLearner():
 
     def update_weight(self, current_global_vector, gold_global_vector):
         # otherwise, the gold_global_vector will change because of the change in weights
-        self.w_vector.data_dict.iadd(gold_global_vector.feature_dict)
-        self.w_vector.data_dict.iaddc(current_global_vector.feature_dict, -1)
+        for key in gold_global_vector.keys():
+            self.w_vector.data_dict[key].iadd(gold_global_vector[key].feature_dict)
+
+        for key in current_global_vector.iterkeys():
+            self.w_vector.data_dict[key].iaddc(current_global_vector[key].feature_dict, -1)
+
         return
-       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
