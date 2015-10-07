@@ -159,10 +159,18 @@ class Sentence():
     #~    return
 
     def convert_list_vector_to_dict(self, fv):
-        ret_fv = FeatureVector()
-        for i in fv:
-            ret_fv[i] += 1
+        ret_fv = {}
+        for key,val in fv.iteritems():
+            push_fv = FeatureVector()
+            for i in val:
+                push_fv[i] += 1
+            ret_fv[key] = push_fv
         return ret_fv
+
+#        ret_fv = FeaturetureVector()
+#        for i in fv:
+#            ret_fv[i] += 1
+#        return ret_fv
 
 
     # Both 1st and 2nd order
@@ -180,7 +188,8 @@ class Sentence():
         :rtype: list
         """
         global_vector = self.f_gen.recover_feature_from_edges(edge_list)
-
+#        print global_vector.keys()
+#        print bobob['AMOD']
         return self.convert_list_vector_to_dict(global_vector)
         #return global_vector
 

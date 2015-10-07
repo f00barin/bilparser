@@ -40,8 +40,11 @@ class PerceptronLearner():
         for key in gold_global_vector.keys():
             self.w_vector.data_dict[key].iadd(gold_global_vector[key].feature_dict)
 
+#        print 'Gold ', gold_global_vector
+#        print 'Current ', current_global_vector
+
         for key in current_global_vector.iterkeys():
-            self.w_vector.data_dict[key].iaddc(current_global_vector[key].feature_dict, -1)
+                    self.w_vector.data_dict[key].iaddc(current_global_vector[key].feature_dict, -1)
 
         return
 

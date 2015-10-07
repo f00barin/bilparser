@@ -79,11 +79,12 @@ class WeightVector():
     #        sub_vector[k] = self.data_dict[k]
     #    return sub_vector
 
-    def get_vector_score(self, fv, label):
-        score = self.data_dict[label].evaluate(fv)
-        return score
+#    def get_vector_score(self, fv, label):
+#        score = self.data_dict[label].evaluate(fv)
+#        return score
 
     def get_best_label_score(self, fv):
+#    def get_vector_score(self, fv, label):
         bestlabel = None
         bestscore = None
         for l in self.labels:
@@ -93,6 +94,16 @@ class WeightVector():
                 bestscore = score
         return bestscore, bestlabel
 
+#    def get_best_label_score(self, fv)
+    def get_vector_score(self, fv):
+        bestlabel = None
+        bestscore = None
+        for l in self.labels:
+            score = self.data_dict[l].evaluate(fv)
+            if bestscore == None or bestscore < score:
+                bestlabel = l
+                bestscore = score
+        return bestscore, bestlabel
 
 
     def load(self,filename):
