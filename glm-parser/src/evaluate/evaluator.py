@@ -104,8 +104,13 @@ class Evaluator():
         :return: the unlabeled accuracy
         :rtype: float
         """
+#        print result_edge_set
+        res_edge = [(l[0], l[1]) for l in result_edge_set]
+#        print 'result', res_edge
+#        print gold_edge_set
         correct_num, gold_set_size =\
-            self._sent_unlabeled_accuracy(result_edge_set, gold_edge_set)
+            self._sent_unlabeled_accuracy(res_edge, gold_edge_set)
+#            self._sent_unlabeled_accuracy(result_edge_set, gold_edge_set)
 
         if accumulate == True:
             self.unlabeled_correct_num += correct_num
