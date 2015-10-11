@@ -1,0 +1,1 @@
+python glm_parser.py -b 05 -e 05 -t 5 -p './penn-wsj-deps/' -i 5 -a --learner='perceptron' --fgen='english_1st_fgen' --parser='ceisner'
