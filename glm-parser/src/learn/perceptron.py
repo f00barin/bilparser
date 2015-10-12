@@ -44,7 +44,7 @@ class PerceptronLearner():
 #        print 'Current ', current_global_vector
 
         for key in current_global_vector.iterkeys():
-                    self.w_vector.data_dict[key].iaddc(current_global_vector[key].feature_dict, -1)
+            self.w_vector.data_dict[key].iaddc(current_global_vector[key].feature_dict, -1)
 
         return
 

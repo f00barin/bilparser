@@ -116,7 +116,9 @@ class Sentence():
         self.f_gen = fgen(self)
 
         # Pre-compute the set of gold features
-        self.gold_global_vector = self.get_global_vector(self.labeled_edges)
+        self.gold_global_vector = self.get_global_vector(self.labeled_edges,
+                                                         self.word_list)
+
         # During initialization is has not been known yet. We will fill this later
         self.current_global_vector = None
 
@@ -124,6 +126,7 @@ class Sentence():
         return
 
     def set_current_global_vector(self, edge_list):
+#        print self.word_list
         """
         This is similar to caching the gold global vector. Current global vector
         is derived from current edge set, which is a result from parser. Since this
@@ -136,7 +139,7 @@ class Sentence():
         :param edge_list: Return value from parser
         :return: None
         """
-        self.current_global_vector = self.get_global_vector(edge_list)
+        self.current_global_vector = self.get_global_vector(edge_list,self.word_list)
         #~self.cache_feature_for_edge_list(edge_list)
 
         return
@@ -174,7 +177,7 @@ class Sentence():
 
 
     # Both 1st and 2nd order
-    def get_global_vector(self, edge_list):
+    def get_global_vector(self, edge_list, word_list):
         """
         Calculate the global vector with the current weight, the order of the feature
         score is the same order as the feature set
@@ -187,7 +190,8 @@ class Sentence():
         :return: The global vector of the sentence with the current weight
         :rtype: list
         """
-        global_vector = self.f_gen.recover_feature_from_edges(edge_list)
+        global_vector = self.f_gen.recover_feature_from_edges(edge_list,
+                                                              word_list)
 #        print global_vector.keys()
 #        print bobob['AMOD']
         return self.convert_list_vector_to_dict(global_vector)

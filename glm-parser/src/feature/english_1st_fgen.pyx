@@ -8,6 +8,7 @@
 #
 
 # Dict-like object that stores features
+import numpy as np
 import feature_vector
 import feature_generator_base
 import debug.debug
@@ -326,18 +327,21 @@ class FirstOrderFeatureGenerator(feature_generator_base.FeatureGeneratorBase):
 
         return map(str, fv)
 
-    def recover_feature_from_edges(self, edge_list):
+    def recover_feature_from_edges(self, edge_list,word_list):
         """
         Return a feature vector instance containing the features
         implied by edge list
         """
+#        print word_list
         fv = {}
 
         for head, dep,label in edge_list:
+
+#            print word_list[head], word_list[dep]
             if label in fv:
-                fv[label] += self.get_local_vector(head, dep)
+                fv[label] += self.get_local_vector(head, dep) + [np.dot(np.random.rand(10), np.random.rand(10))]
             else:
-                fv[label] = self.get_local_vector(head, dep)
+                fv[label] = self.get_local_vector(head, dep) + [np.dot(np.random.rand(10), np.random.rand(10))]
         
         return fv
 
