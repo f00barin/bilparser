@@ -8,7 +8,8 @@
 #
 
 #import cPickle as pickle
-import sys
+#import sys
+import numpy as np
 
 from debug.debug import local_debug_flag
 
@@ -83,27 +84,49 @@ class WeightVector():
 #        score = self.data_dict[label].evaluate(fv)
 #        return score
 
-    def get_best_label_score(self, fv):
+    def get_best_label_score(self, fullvec):
 #    def get_vector_score(self, fv, label):
         bestlabel = None
         bestscore = None
+        fv = fullvec[0]
+        h = fullvec[1][0]
+        m = fullvec[1][1]
+        hm = np.random.rand(11)
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
+            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
+            for val in xrange(1,6):
+                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
+            for val in xrange(6,11):
+                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
+            #print self.data_dict[l][str((5,0,h,m))]
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
         return bestscore, bestlabel
 
-#    def get_best_label_score(self, fv)
-    def get_vector_score(self, fv):
+    def get_vector_score(self, fullvec):
+#    def get_vector_score(self, fv, label):
         bestlabel = None
         bestscore = None
+        fv = fullvec[0]
+        h = fullvec[1][0]
+        m = fullvec[1][1]
+        hm = np.zeros(11)
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
+            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
+            for val in xrange(1,6):
+                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
+            for val in xrange(6,11):
+                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
+            #print self.data_dict[l][str((5,0,h,m))]
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
         return bestscore, bestlabel
+
+
 
 
     def load(self,filename):
@@ -121,7 +144,7 @@ class WeightVector():
             line = line.split("    ")
             self.data_dict[line[0]] = float(line[1])
         #print self.data_dict
-        #self.data_dict = pickle.load(fp)
+    #self.data_dict = pickle.load(fp)
         fp.close()
         return
 

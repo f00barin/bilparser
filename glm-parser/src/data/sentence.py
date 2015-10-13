@@ -7,7 +7,8 @@
 # (Please add on your name if you have authored this file)
 #
 
-import copy
+#import copy
+import numpy as np
 from feature.feature_vector import FeatureVector
 
 """
@@ -161,12 +162,21 @@ class Sentence():
     #~    self.f_gen.cache_feature_for_edge_list(edge_list)
     #~    return
 
-    def convert_list_vector_to_dict(self, fv):
+    def convert_list_vector_to_dict(self, fv, edge_list, word_list):
         ret_fv = {}
         for key,val in fv.iteritems():
             push_fv = FeatureVector()
             for i in val:
                 push_fv[i] += 1
+            for h,m,l in edge_list:
+                if l == key:
+                    #hm = hmdict[(word_list[h],word_list[m])]
+                    hm = np.zeros(11)
+                    push_fv[str((5,0,word_list[h],word_list[m],l))] = hm[0]
+                    for val in xrange(1,6):
+                        push_fv[str((5,1,word_list[h],l))] = hm[val]
+                    for val in xrange(6,11):
+                        push_fv[str((5,2,word_list[m],l))] = hm[val]
             ret_fv[key] = push_fv
         return ret_fv
 
@@ -190,11 +200,10 @@ class Sentence():
         :return: The global vector of the sentence with the current weight
         :rtype: list
         """
-        global_vector = self.f_gen.recover_feature_from_edges(edge_list,
-                                                              word_list)
+        global_vector = self.f_gen.recover_feature_from_edges(edge_list)
 #        print global_vector.keys()
 #        print bobob['AMOD']
-        return self.convert_list_vector_to_dict(global_vector)
+        return self.convert_list_vector_to_dict(global_vector, edge_list, word_list)
         #return global_vector
 
 
@@ -224,8 +233,9 @@ class Sentence():
                                          another_index_list,
                                          feature_type)
 
-        return lv
+#        print (self.word_list[head_index], self.word_list[dep_index])
 
+        return lv, (self.word_list[head_index], self.word_list[dep_index])
 
     '''
     def get_second_order_local_vector(self, head_index, dep_index,
