@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import os, re
+from glob import iglob
 from sentence import Sentence
+from scipy.io import mmread
+import numpy as np
 import logging
 
 logging.basicConfig(filename='glm_parser.log',
@@ -31,23 +34,28 @@ class DataPool():
                  fgen=None):
         """
         Initialize the Data set
-        
-        :param section_set: the sections to be used. 
+
+        :param section_set: the sections to be used.
         It can be specifiled by a list of either integer or tuple.
         for tuple (a,b), the section would be from a to b including a and b
         :type section_set: list(int/tuple)
-        
+
         :param data_path: the relative or absolute path to the 'penn-wsj-deps' folder
         (including "penn-wsj-deps")
         :type data_path: str
-        
-        """  
+
+        """
+        self.headreps = {}
+        self.modreps = {}
+        self.bils = {}
+
         self.data_path = data_path
         self.set_section_list(section_set)
-        
+        self.reps = data_path+'reps/'
         self.reset_all()
         self.load(fgen)
-
+        self.loadreps()
+        self.loadbils()
         return
 
     def reset_all(self):
@@ -82,7 +90,7 @@ class DataPool():
             return True
         else:
             return False
-        
+
     def get_next_data(self):
         """
         Return the next sentence object, which is previously read
@@ -123,6 +131,78 @@ class DataPool():
 
         return
 
+    def loadreps(self):
+        headreps = {}
+        modreps = {}
+        for section in self.section_list:
+            data_path_with_section = self.reps + ("%02d/" % (section, ))
+            for file_name in iglob(data_path_with_section + '*heads*'):
+                headreps = {w.strip().split()[0]:np.array(list(map(float,
+                                                                        w.strip().split()[1:]))) for
+                             w in open(file_name)}
+            for file_name in iglob(data_path_with_section + '*mods*'):
+                modreps = {w.strip().split()[0]:np.array(list(map(float,
+                                                              w.strip().split()[1:])))
+                                for w in open(file_name)}
+        if headreps != {} and modreps != {}:
+            headmat = np.zeros((len(headreps), 300))
+            row = 0
+            headlist = []
+            for head, vector in headreps.items():
+                headmat[row] = vector
+                headlist.append(head)
+                row += 1
+
+            modmat = np.zeros((len(modreps), 300))
+            row = 0
+            modlist = []
+            print len(modreps)
+            for mod, vector in modreps.items():
+                modmat[row] = vector
+                modlist.append(mod)
+                row += 1
+
+            labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
+
+            for section in self.section_list:
+                data_path_with_section = self.reps + ("%02d/" % (section, ))
+                for label in labels:
+                    for file_name in iglob(data_path_with_section+'*'+label+'*'):
+                        wmat = np.array(mmread(file_name))
+                        scoremat = headmat.dot(wmat.dot(modmat.T))
+                        u, s, vt = np.linalg.svd(wmat)
+                        lheadmat = headmat.dot(u[:,:5])
+                        lmodmat = ((vt[:5,:]).dot(modmat.T)).T
+                        hmlist = {}
+                        for hi in range(len(headlist)):
+                            for mi in range(len(modlist)):
+                                val = []
+                                val.append(scoremat[hi,mi])
+                                val.append(lheadmat[hi])
+                                val.append(lmodmat[mi])
+                                hmlist.update({(headlist[hi],modlist[mi]): val})
+                        self.bils.update({label:
+                                        hmlist})
+
+        return
+
+    def loadbils(self):
+
+        labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
+        for section in self.section_list:
+            data_path_with_section = self.reps + ("%02d/" % (section, ))
+            for label in labels:
+                for file_name in iglob(data_path_with_section+'*'+label+'*'):
+                    self.bils.update({label:
+                                      np.array(mmread(file_name).todense())})
+        return
+
+
+
+
+
+
+
 
     def get_data_list(self, file_path, fgen):
         """
@@ -144,7 +224,7 @@ class DataPool():
 
         :param file_path: the path to the data file
         :type file_path: str
-        
+
         :return: a list of DependencyTree in the specified file
         :rtype: list(Sentence)
         """
@@ -186,7 +266,7 @@ class DataPool():
 
         return data_list
 
-    
+
     def set_section_list(self, section_set):
         """
         Initialize self.section_list as a list containing section
@@ -214,7 +294,7 @@ class DataPool():
 
         for s_set in section_sets:
             self.section_list = self.section_list + s_set
-        
+
         # We always train using increasing order
         self.section_list.sort()
 
@@ -248,46 +328,46 @@ class DataSet():
     Read the test data files and generate the trees for parser testing
     The class is specifically for penn-wsj-deps data
     """
-    def __init__(self,  
-                 section_set=None, 
+    def __init__(self,
+                 section_set=None,
                  data_path=None):
         """
         Initialize the Data set
-        
-        :param section_set: the sections to be used. 
+
+        :param section_set: the sections to be used.
         It can be specifiled by a list of either integer or tuple.
         for tuple (a,b), the section would be from a to b including a and b
         :type section_set: list(int/tuple)
-        
+
         :param data_path: the relative or absolute path to the 'penn-wsj-deps' folder
         (include "penn-wsj-deps")
         :type data_path: str
-        
-        """  
+
+        """
         if section_set == None:
             section_set = [(2,21)]
         if data_path == None:
             data_path="./penn-wsj-deps/"
-            
+
         self._data_path = data_path
-        self.set_section_list(section_set)        
+        self.set_section_list(section_set)
         self.init_current_tracker()
-        
-        return            
-    
+
+        return
+
     def reset(self):
         """
         reset the tracking parameter, to start over from the first sentence
         """
         self.init_current_tracker()
-        return        
-        
+        return
+
     def init_current_tracker(self):
         """
         Initialize the parameter for tracking the current unused data:
-        
+
         """
-        # track current unused test data       
+        # track current unused test data
         # the data set which contains the current unused data
         # it is a list of DependencyTree
         self._current_data_set = []
@@ -298,9 +378,9 @@ class DataSet():
 
         # the left file list is the path of the files in the current section
         # that has not been added to the current data set
-        self._left_file_list  = [] 
+        self._left_file_list  = []
         return
-    
+
     def set_section_list(self, section_set):
         """
         Set the section list from section set
@@ -308,21 +388,21 @@ class DataSet():
             tuples --   representing the range of the section,
                         i.e. (1,3) means range 1,2,3
             int    --   single section number
-        
+
         :param section_set: the sections to be used
-        :type section_set: list(tuple/int) 
+        :type section_set: list(tuple/int)
         """
         self._section_list = [section for section in section_set if isinstance(section, int)]
-        
+
         section_sets = \
             map(lambda section_tuple: range(section_tuple[0], section_tuple[1]+1),
                 [st for st in section_set if isinstance(st, tuple)])
         for s_set in section_sets:
             self._section_list = self._section_list + s_set
-        
-        self._section_list.sort()        
-        return               
-    
+
+        self._section_list.sort()
+        return
+
     def add_file_list(self):
         """
         add all the file path in the next section to the left_file_list
@@ -339,18 +419,18 @@ class DataSet():
             for file in os.listdir(self._data_path + "%02d" % next_section):
                 self._left_file_list.append("%02d/" % next_section + file)
         return True
-        
+
     def has_next_data(self):
         """
         :return:    True, if there exists unused data entry
                     False, otherwise
         :rtype: boolean
-        """            
+        """
         data_set = self._current_data_set
         if data_set == []:
             data_set = self.add_data()
         return data_set != []
-        
+
     def get_next_data(self):
         """
         Return the next unused data entry
@@ -366,39 +446,39 @@ class DataSet():
     def get_data(self, file_name, index=0):
         """
         Get data entity from specified file name and index
-        
+
         :param file_name: the name of the data file
         :type file_name: str
-        
+
         :param index: the index of the data entity in the file, 0 by default,
                       which is the 1st entity in the file
         :type index: int
-        
+
         :return: the expected data entity
         :rtype: DependencyTree
         """
         sections = re.findall( r'wsj_(\d\d)\d\d\.mrg\.3\.pa\.gs\.tab', file_name)
         if sections == None or len(sections) != 1:
             print "Invalid file name!!"
-            return None   
-            
+            return None
+
         section = sections[0]
-        
+
         file_path = self._data_path + section + '/' + file_name
         data_list = self.get_data_list(file_path)
-        
+
         if index >= len(data_list) or index < -len(data_list):
             print "Invalid index!!"
             return None
         return data_list[index]
-    
+
     def get_data_list(self, file_path):
         """
         Form the DependencyTree list from the specified file
-        
+
         :param file_path: the path to the data file
         :type: str
-        
+
         :return: a list of DependencyTree in the specified file
         :rtype: list(DependencyTree)
         """
@@ -433,19 +513,19 @@ class DataSet():
                 edge_set = {}
                 current_index = 0
         return data_set
-    
+
     def add_data(self):
         """
         add data from the next file in the left_file_list
         that has not been added to the data set
 
-        return: if no data has been added:  None 
+        return: if no data has been added:  None
                 otherwise:  the udated dataset
-        """      
+        """
         if self._left_file_list == []:
             if self.add_file_list() == False:
                 return self._current_data_set
-            
+
         file_path = self._data_path + self._left_file_list.pop(0)
         self._current_data_set += self.get_data_list(file_path)
         return self._current_data_set
@@ -460,7 +540,7 @@ class DataSet():
         """
         if self._current_section == None:
             return None
-            
+
         left_list = filter(lambda n: n>self._current_section, self._section_list)
         if left_list == []:
             return None
