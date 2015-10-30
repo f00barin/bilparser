@@ -314,9 +314,9 @@ if __name__ == "__main__":
     i = 0
     while dp.has_next_data():
         data = dp.get_next_data()
-        print data.word_list
-        print data.pos_list
-        print data.edge_set
+#        print data.word_list
+#        print data.pos_list
+#        print data.edge_set
 
 
 

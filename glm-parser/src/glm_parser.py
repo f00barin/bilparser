@@ -27,7 +27,6 @@ class GlmParser():
                  learner=None,
                  fgen=None,
                  parser=None):
-
         self.max_iter = max_iter
         self.data_path = data_path
 
@@ -82,9 +81,12 @@ class GlmParser():
 
 
 
-    def compute_argmax(self, sentence):
-        current_edge_set = self.parser.parse(sentence, self.w_vector.get_best_label_score)
+    def compute_argmax(self, sentence, sentno):
+        current_edge_set = self.parser.parse(sentence,
+                                             self.w_vector.get_best_label_score,
+                                             sentno)
 
+#        print current_edge_set
         sentence.set_current_global_vector(current_edge_set)
         current_global_vector = sentence.current_global_vector
 

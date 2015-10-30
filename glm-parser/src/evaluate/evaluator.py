@@ -1,4 +1,6 @@
 from __future__ import division
+import os.path
+import sqlite3
 import logging
 
 logging.basicConfig(filename='glm_parser.log',
@@ -64,6 +66,14 @@ class Evaluator():
         return correct_num, gold_set_size
 
     def evaluate(self, data_pool, parser, w_vector, training_time):
+        if os.path.isfile('example.db'):
+            print 'haha'
+        else:
+            db = sqlite3.connect('example.db')
+            cur = db.cursor()
+            cur.execute("create table test(x)")
+            db.commit()
+
         logging.debug("Start evaluating ...")
         while data_pool.has_next_data():
             sent = data_pool.get_next_data()
@@ -78,6 +88,7 @@ class Evaluator():
             sent_len = len(sent.get_word_list())
             test_edge_set = \
                parser.parse(sent, w_vector.get_vector_score)
+            #print sent.get_edge_list()
 
             self.unlabeled_accuracy(test_edge_set, gold_edge_set, True)
             self.labeled_accuracy(test_edge_set, sent.get_edge_list(), True)

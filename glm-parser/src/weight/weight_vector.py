@@ -10,6 +10,8 @@
 #import cPickle as pickle
 #import sys
 import numpy as np
+import sqlite3
+import os.path
 
 from debug.debug import local_debug_flag
 
@@ -89,17 +91,34 @@ class WeightVector():
         bestlabel = None
         bestscore = None
         fv = fullvec[0]
-        h = fullvec[1][0]
-        m = fullvec[1][1]
-        hm = np.random.rand(11)
+        h, m = fullvec[2]
+        ssno = fullvec[3]
+        print h,m, ssno
+        if os.path.isfile('training.db'):
+            db = sqlite3.connect('training.db')
+        else:
+            db = sqlite3.connect('training.db')
+            cur = db.cursor()
+            cur.execute('''CREATE TABLE features (sentno integer,  head
+                        integer, mod integer, feats text)''')
+            db.commit()
+        cur = db.cursor()
+        cur.execute("INSERT INTO features VALUES (?,?,?,?)",
+                    (ssno, h, m, '###join###'.join(fv)))
+        db.commit()
+
+
+#        h = fullvec[1][0]
+#        m = fullvec[1][1]
+#        hm = np.random.rand(11)
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
-            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
-            for val in xrange(1,6):
-                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
-            for val in xrange(6,11):
-                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
-            #print self.data_dict[l][str((5,0,h,m))]
+#            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
+#            for val in xrange(1,6):
+#                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
+#            for val in xrange(6,11):
+#                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
+#            #print self.data_dict[l][str((5,0,h,m))]
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
@@ -110,17 +129,17 @@ class WeightVector():
         bestlabel = None
         bestscore = None
         fv = fullvec[0]
-        h = fullvec[1][0]
-        m = fullvec[1][1]
-        hm = np.zeros(11)
+#        h = fullvec[1][0]
+#        m = fullvec[1][1]
+#        hm = np.zeros(11)
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
-            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
-            for val in xrange(1,6):
-                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
-            for val in xrange(6,11):
-                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
-            #print self.data_dict[l][str((5,0,h,m))]
+#            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
+#            for val in xrange(1,6):
+#                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
+#            for val in xrange(6,11):
+#                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
+#            #print self.data_dict[l][str((5,0,h,m))]
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score

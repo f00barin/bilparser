@@ -210,6 +210,7 @@ class Sentence():
     def get_local_vector(self,
                          head_index,
                          dep_index,
+                         sentno,
                          another_index_list = [],
                          feature_type = 0):
         """
@@ -235,7 +236,7 @@ class Sentence():
 
 #        print (self.word_list[head_index], self.word_list[dep_index])
 
-        return lv, (self.word_list[head_index], self.word_list[dep_index])
+        return lv, (self.word_list[head_index], self.word_list[dep_index]),(head_index, dep_index), sentno
 
     '''
     def get_second_order_local_vector(self, head_index, dep_index,
