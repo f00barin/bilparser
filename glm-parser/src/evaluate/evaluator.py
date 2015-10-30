@@ -1,4 +1,5 @@
 from __future__ import division
+import shelve
 import os.path
 import sqlite3
 import logging
@@ -66,13 +67,14 @@ class Evaluator():
         return correct_num, gold_set_size
 
     def evaluate(self, data_pool, parser, w_vector, training_time):
-        if os.path.isfile('example.db'):
-            print 'haha'
-        else:
-            db = sqlite3.connect('example.db')
-            cur = db.cursor()
-            cur.execute("create table test(x)")
-            db.commit()
+#        if os.path.isfile('example.db'):
+#            print 'haha'
+#        else:
+#            db = sqlite3.connect('example.db')
+#            cur = db.cursor()
+#            cur.execute("create table test(x)")
+#            db.commit()
+#
 
         logging.debug("Start evaluating ...")
         while data_pool.has_next_data():

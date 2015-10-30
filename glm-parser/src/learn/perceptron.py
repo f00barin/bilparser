@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import sqlite3
-import os.path
+#import sqlite3
+#import os.path
+import shelve
 import logging
 from itertools import permutations
 logging.basicConfig(filename='glm_parser.log',
@@ -26,13 +27,23 @@ class PerceptronLearner():
             logging.debug("Iteration: %d" % i)
             logging.debug("Data size: %d" % len(data_pool.data_list))
 
-
+            s = shelve.open('TRAINING.db', flag='c', writeback=True)
             while data_pool.has_next_data():
                 self.sentence += 1
-
+                sentno = str(self.sentence)
                 data_instance = data_pool.get_next_data()
-#                print self.sentence
-#                for h, m in permutations(range(len(data_instance.word_list)),2):
+                print self.sentence
+                for h, m in permutations(range(len(data_instance.word_list)),2):
+                    if sentno in s:
+                        s[sentno][(h,m)] = data_instance.get_local_vector(h,m,
+                                                                          self.sentence)[0]
+                    else:
+                        s[sentno] = {(h,m):
+                                     data_instance.get_local_vector(h,m,
+                                                                    self.sentence)[0]}
+                s.sync()
+            s.close()
+
 #                    print h,m
 #                    cur = db.cursor()
 #                    cur.execute("INSERT INTO features VALUES (?,?,?,?)",
@@ -43,17 +54,17 @@ class PerceptronLearner():
 #                    print 'this is %s, %s' % (h,m), data_instance.get_local_vector(h,m)
 
 
-                gold_global_vector = data_instance.gold_global_vector
-#                print gold_global_vector.keys()
-                current_global_vector = f_argmax(data_instance, self.sentence)
-#                print current_global_vector.keys()
-                self.update_weight(current_global_vector, gold_global_vector)
-
-            data_pool.reset_index()
-            if d_filename is not None:
-                if i % dump_freq == 0 or i == max_iter - 1:
-                    self.w_vector.dump(d_filename + "_Iter_%d.db"%i)
-
+#                gold_global_vector = data_instance.gold_global_vector
+##                print gold_global_vector.keys()
+#                current_global_vector = f_argmax(data_instance, self.sentence)
+##                print current_global_vector.keys()
+#                self.update_weight(current_global_vector, gold_global_vector)
+#
+#            data_pool.reset_index()
+#            if d_filename is not None:
+#                if i % dump_freq == 0 or i == max_iter - 1:
+#                    self.w_vector.dump(d_filename + "_Iter_%d.db"%i)
+#
 
     def update_weight(self, current_global_vector, gold_global_vector):
         # otherwise, the gold_global_vector will change because of the change in weights

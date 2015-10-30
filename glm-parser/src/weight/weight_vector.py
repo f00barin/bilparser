@@ -94,7 +94,6 @@ class WeightVector():
         fv = fullvec[0]
         h, m = fullvec[2]
         ssno = fullvec[3]
-        print h,m, ssno
 #        if os.path.isfile('training.db'):
 #            db = sqlite3.connect('training.db')
 #            s = shelve.open('training.db', writeback=True)
@@ -102,7 +101,6 @@ class WeightVector():
         s = shelve.open('training.db', flag='c', writeback=True)
         if str(ssno) in s:
             s[str(ssno)][(h,m)] = fv
-            print ssno
         else:
             s[str(ssno)] = {(h,m): fv}
         s.sync()
