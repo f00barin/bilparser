@@ -8,6 +8,7 @@
 #
 
 #import copy
+import timeit
 import numpy as np
 from feature.feature_vector import FeatureVector
 
@@ -227,7 +228,6 @@ class Sentence():
         FeatureGenerator.get_second_order_local_vector() doc string.
 
         """
-
 
         lv = self.f_gen.get_local_vector(head_index,
                                          dep_index,

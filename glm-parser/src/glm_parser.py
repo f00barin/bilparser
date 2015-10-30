@@ -51,7 +51,8 @@ class GlmParser():
 
         self.evaluator = Evaluator()
 
-    def sequential_train(self, train_section=[], max_iter=-1, d_filename=None, dump_freq = 1):
+    def sequential_train(self, train_section=[], max_iter=-1, d_filename=None,
+                         dump_freq = 1):
         if not train_section == []:
             train_data_pool = DataPool(train_section, self.data_path, fgen=self.fgen)
         else:

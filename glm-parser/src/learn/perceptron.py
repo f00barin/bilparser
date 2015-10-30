@@ -29,19 +29,11 @@ class PerceptronLearner():
 
             while data_pool.has_next_data():
                 self.sentence += 1
-                if os.path.isfile('training.db'):
-                    db = sqlite3.connect('training.db')
-                else:
-                    db = sqlite3.connect('training.db')
-                    cur = db.cursor()
-                    cur.execute('''CREATE TABLE features (sentno integer,  head
-                                integer, mod integer, feats text)''')
-                    db.commit()
 
                 data_instance = data_pool.get_next_data()
 #                print self.sentence
 #                for h, m in permutations(range(len(data_instance.word_list)),2):
-##                    print h,m
+#                    print h,m
 #                    cur = db.cursor()
 #                    cur.execute("INSERT INTO features VALUES (?,?,?,?)",
 #                               (self.sentence, h, m, '###join###'.join(data_instance.get_local_vector(h,m)[0])))

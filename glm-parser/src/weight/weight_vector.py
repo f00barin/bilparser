@@ -10,7 +10,8 @@
 #import cPickle as pickle
 #import sys
 import numpy as np
-import sqlite3
+#import sqlite3
+import shelve
 import os.path
 
 from debug.debug import local_debug_flag
@@ -94,18 +95,28 @@ class WeightVector():
         h, m = fullvec[2]
         ssno = fullvec[3]
         print h,m, ssno
-        if os.path.isfile('training.db'):
-            db = sqlite3.connect('training.db')
+#        if os.path.isfile('training.db'):
+#            db = sqlite3.connect('training.db')
+#            s = shelve.open('training.db', writeback=True)
+#        else:
+        s = shelve.open('training.db', flag='c', writeback=True)
+        if str(ssno) in s:
+            s[str(ssno)][(h,m)] = fv
+            print ssno
         else:
-            db = sqlite3.connect('training.db')
-            cur = db.cursor()
-            cur.execute('''CREATE TABLE features (sentno integer,  head
-                        integer, mod integer, feats text)''')
-            db.commit()
-        cur = db.cursor()
-        cur.execute("INSERT INTO features VALUES (?,?,?,?)",
-                    (ssno, h, m, '###join###'.join(fv)))
-        db.commit()
+            s[str(ssno)] = {(h,m): fv}
+        s.sync()
+        s.close()
+#            db = sqlite3.connect('training.db')
+#            cur = db.cursor()
+#            cur.execute('''CREATE TABLE features (sentno integer,  head
+#                        integer, mod integer, feats text)''')
+#            db.commit()
+#        cur = db.cursor()
+#        cur.execute("INSERT INTO features VALUES (?,?,?,?)",
+#                    (ssno, h, m, '###join###'.join(fv)))
+#        db.commit()
+
 
 
 #        h = fullvec[1][0]
