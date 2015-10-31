@@ -54,8 +54,8 @@ class DataPool():
         self.reps = data_path+'reps/'
         self.reset_all()
         self.load(fgen)
-        self.loadreps()
-        self.loadbils()
+#        self.loadreps()
+#        self.loadbils()
         return
 
     def reset_all(self):
