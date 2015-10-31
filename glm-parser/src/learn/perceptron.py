@@ -27,12 +27,12 @@ class PerceptronLearner():
             logging.debug("Iteration: %d" % i)
             logging.debug("Data size: %d" % len(data_pool.data_list))
 
-            #s = shelve.open('TRAINING.db', flag='c', writeback=True)
-            db = sqlite3.connect('validation_sql.db')
-            cur = db.cursor()
-            cur.execute('''CREATE TABLE features (sentno integer,  head
-                        integer, mod integer, feats text)''')
-            db.commit()
+            s = shelve.open('VALIDATION.db', flag='c', writeback=True)
+#            db = sqlite3.connect('validation_sql.db')
+#            cur = db.cursor()
+#            cur.execute('''CREATE TABLE features (sentno integer,  head
+#                        integer, mod integer, feats text)''')
+#            db.commit()
             while data_pool.has_next_data():
                 self.sentence += 1
                 cur = db.cursor()
@@ -40,22 +40,22 @@ class PerceptronLearner():
                 data_instance = data_pool.get_next_data()
                 print self.sentence
                 for h, m in permutations(range(len(data_instance.word_list)),2):
-                    cur.execute("INSERT INTO features VALUES (?,?,?,?)",
-                               (self.sentence, h, m,
-                                '###join###'.join(data_instance.get_local_vector(h,m,
-                                                                                 self.sentence)[0])))
-                db.commit()
+#                    cur.execute("INSERT INTO features VALUES (?,?,?,?)",
+#                               (self.sentence, h, m,
+#                                '###join###'.join(data_instance.get_local_vector(h,m,
+#                                                                                 self.sentence)[0])))
+#                db.commit()
 
-#                    if sentno in s:
-#                        s[sentno][(h,m)] = data_instance.get_local_vector(h,m,
-#                                                                          self.sentence)[0]
-#                    else:
-#                        s[sentno] = {(h,m):
-#                                     data_instance.get_local_vector(h,m,
-#                                                                    self.sentence)[0]}
-                    #s.sync()
-#            s.close()
-            db.close()
+                    if sentno in s:
+                        s[sentno][(h,m)] = data_instance.get_local_vector(h,m,
+                                                                          self.sentence)[0]
+                    else:
+                        s[sentno] = {(h,m):
+                                     data_instance.get_local_vector(h,m,
+                                                                    self.sentence)[0]}
+                    s.sync()
+            s.close()
+#            db.close()
 #                    print h,m
 #                    cur = db.cursor()
 #                    cur.execute("INSERT INTO features VALUES (?,?,?,?)",
