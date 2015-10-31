@@ -28,7 +28,7 @@ class PerceptronLearner():
             logging.debug("Data size: %d" % len(data_pool.data_list))
 
             #s = shelve.open('TRAINING.db', flag='c', writeback=True)
-            db = sqlite3.connect('training_sql.db')
+            db = sqlite3.connect('validation_sql.db')
             cur = db.cursor()
             cur.execute('''CREATE TABLE features (sentno integer,  head
                         integer, mod integer, feats text)''')
