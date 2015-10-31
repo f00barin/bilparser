@@ -35,7 +35,7 @@ class PerceptronLearner():
 #            db.commit()
             while data_pool.has_next_data():
                 self.sentence += 1
-                cur = db.cursor()
+#                cur = db.cursor()
                 sentno = str(self.sentence)
                 data_instance = data_pool.get_next_data()
                 print self.sentence
