@@ -56,7 +56,7 @@ class DataPool():
         self.reset_all()
         self.load(fgen)
 #        self.loadreps()
-#        self.loadbils()
+        self.loadbils()
 #        self.loadbils()
         return
 
