@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import os, re
+import shelve
 from glob import iglob
 from sentence import Sentence
 from scipy.io import mmread
@@ -55,6 +56,7 @@ class DataPool():
         self.reset_all()
         self.load(fgen)
 #        self.loadreps()
+#        self.loadbils()
 #        self.loadbils()
         return
 
@@ -188,15 +190,67 @@ class DataPool():
 
     def loadbils(self):
 
-        labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
+#        labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
+#        for section in self.section_list:
+#            data_path_with_section = self.reps + ("%02d/" % (section, ))
+#            for label in labels:
+#                for file_name in iglob(data_path_with_section+'*'+label+'*'):
+#                    self.bils.update({label:
+#                                      np.array(mmread(file_name).todense())})
+#        return
+#
+        s = shelve.open('biltraining.db', flag='c', writeback=True)
+        headreps = {}
+        modreps = {}
         for section in self.section_list:
             data_path_with_section = self.reps + ("%02d/" % (section, ))
-            for label in labels:
-                for file_name in iglob(data_path_with_section+'*'+label+'*'):
-                    self.bils.update({label:
-                                      np.array(mmread(file_name).todense())})
-        return
+            for file_name in iglob(data_path_with_section + '*heads*'):
+                headreps = {w.strip().split()[0]:np.array(list(map(float,
+                                                                        w.strip().split()[1:]))) for
+                             w in open(file_name)}
+            for file_name in iglob(data_path_with_section + '*mods*'):
+                modreps = {w.strip().split()[0]:np.array(list(map(float,
+                                                              w.strip().split()[1:])))
+                                for w in open(file_name)}
+        if headreps != {} and modreps != {}:
+            headmat = np.zeros((len(headreps), 300))
+            row = 0
+            headlist = []
+            for head, vector in headreps.items():
+                headmat[row] = vector
+                headlist.append(head)
+                row += 1
 
+            modmat = np.zeros((len(modreps), 300))
+            row = 0
+            modlist = []
+            print len(modreps)
+            for mod, vector in modreps.items():
+                modmat[row] = vector
+                modlist.append(mod)
+                row += 1
+
+            labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','SBAR','SUB','VC','VMOD']
+
+            for section in self.section_list:
+                data_path_with_section = self.reps + ("%02d/" % (section, ))
+                for label in labels:
+                    for file_name in iglob(data_path_with_section+'*'+label+'*'):
+                        wmat = np.array(mmread(file_name))
+                        scoremat = headmat.dot(wmat.dot(modmat.T))
+                        for hi in range(len(headlist)):
+                            for mi in range(len(modlist)):
+                                if label in s:
+                                    s[label][(headlist[hi], modlist[mi])] = \
+                                        (str(5, 0, headlist[hi], modlist[mi],
+                                            label), scoremat[hi, mi])
+                                else:
+                                    s[label] = {(headlist[hi], modlist[mi]): \
+                                         (str(5, 0, headlist[hi], modlist[mi],
+                                              \
+                                              label), scoremat[hi, mi])}
+                    s.sync()
+        s.close()
 
 
 
