@@ -53,7 +53,7 @@ class PerceptronLearner():
                         s[sentno] = {(h,m):
                                      data_instance.get_local_vector(h,m,
                                                                     self.sentence)[0]}
-                    s.sync()
+                s.sync()
             s.close()
 #            db.close()
 #                    print h,m
