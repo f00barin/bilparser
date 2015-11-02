@@ -61,7 +61,7 @@ class GlmParser():
         if max_iter == -1:
             max_iter = self.max_iter
 
-    #    self.learner.sequential_learn(self.compute_argmax, train_data_pool, max_iter, d_filename, dump_freq)
+        self.learner.sequential_learn(self.compute_argmax, train_data_pool, max_iter, d_filename, dump_freq)
 
     def evaluate(self, training_time,  test_section=[]):
         if not test_section == []:
