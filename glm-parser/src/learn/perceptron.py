@@ -36,8 +36,9 @@ class PerceptronLearner():
                         open('penn-wsj-deps/reps/07/ptb.train.original.heads.reps')]
             modlist = [w.strip().split()[0] for w in
                        open('penn-wsj-deps/reps/07/ptb.train.original.mods.reps')]
-            labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','SBAR','SUB','VC','VMOD']
-            s = shelve.open('lbfeatures.db', flag='c', writeback=True)
+#            labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','SBAR','SUB','VC','VMOD']
+            labels = ['NMOD']
+            s = shelve.open('lbfeatures'+labels[0]+'.db', flag='c', writeback=True)
             for label in labels:
                 hmmat = np.load('penn-wsj-deps/reps/bt.'+label+'.npy')
                 while data_pool.has_next_data():
