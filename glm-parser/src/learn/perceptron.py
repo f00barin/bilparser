@@ -3,6 +3,8 @@ import sqlite3
 import numpy as np
 from scipy.io import mmread
 from glob import iglob
+from itertools import permutations
+
 #import os.path
 import shelve
 import logging
@@ -92,7 +94,7 @@ class PerceptronLearner():
 ##            db.commit()
             while data_pool.has_next_data():
                 self.sentence += 1
-                cur = db.cursor()
+#                cur = db.cursor()
                 sentno = str(self.sentence)
                 data_instance = data_pool.get_next_data()
                 print self.sentence
