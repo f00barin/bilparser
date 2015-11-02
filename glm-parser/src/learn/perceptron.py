@@ -57,6 +57,7 @@ class PerceptronLearner():
                                 s[sentno] = {(h,m):(str((5, 0, h, m, label)),
                                                     hmmat[head, mod])}
                     s.sync()
+                del(hmmat)
             s.sync()
             s.close()
 
