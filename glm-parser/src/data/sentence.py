@@ -209,6 +209,7 @@ class Sentence():
 
 
     def get_local_vector(self,
+                         sdict,
                          head_index,
                          dep_index,
                          sentno,
@@ -228,11 +229,11 @@ class Sentence():
         FeatureGenerator.get_second_order_local_vector() doc string.
 
         """
-
-        lv = self.f_gen.get_local_vector(head_index,
-                                         dep_index,
-                                         another_index_list,
-                                         feature_type)
+        lv = sdict[str(sentno)][(head_index, dep_index)]
+#        lv = self.f_gen.get_local_vector(head_index,
+#                                         dep_index,
+#                                         another_index_list,
+#                                         feature_type)
 
 #        print (self.word_list[head_index], self.word_list[dep_index])
 
