@@ -10,7 +10,7 @@
 #
 
 from data.data_pool import *
-
+import shelve
 from evaluate.evaluator import *
 
 from weight.weight_vector import *
@@ -29,8 +29,11 @@ class GlmParser():
                  parser=None):
         self.max_iter = max_iter
         self.data_path = data_path
-
         self.w_vector = WeightVector(l_filename)
+
+        self.trainfeats = shelve.open('lw.db', flag='r')
+        self.btfeats = shelve.open('lw.db', flag='r')
+
 
         if fgen is not None:
             # Do not instanciate this; used elsewhere
@@ -61,7 +64,9 @@ class GlmParser():
         if max_iter == -1:
             max_iter = self.max_iter
 
-        self.learner.sequential_learn(self.compute_argmax, train_data_pool, max_iter, d_filename, dump_freq)
+        self.learner.sequential_learn(self.compute_argmax, train_data_pool,
+                                      max_iter, d_filename, dump_freq,
+                                      self.trainfeats, self.btfeats)
 
     def evaluate(self, training_time,  test_section=[]):
         if not test_section == []:
