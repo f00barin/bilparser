@@ -30,6 +30,8 @@ class PerceptronLearner():
             logging.debug("Data size: %d" % len(data_pool.data_list))
 
             while data_pool.has_next_data():
+                self.sentence += 1
+                print self.sentence
                 data_instance = data_pool.get_next_data()
                 gold_global_vector = data_instance.gold_global_vector
                 current_global_vector = f_argmax(data_instance, self.sentence)

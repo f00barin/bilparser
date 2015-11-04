@@ -225,7 +225,7 @@ cdef class EisnerParser:
                     node_queue.push(node_right)
         return
     
-    def parse(self, sent, arc_weight, sentno, sfeats,sbfeats):	
+    def parse(self, sent, arc_weight, sentno, sfeats, sbfeats):	
 
         self.n = len(sent.word_list)
         self.init_eisner_matrix()
