@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-import sqlite3
-import numpy as np
-from scipy.io import mmread
-from glob import iglob
-from itertools import permutations
 
 #import os.path
-import shelve
 import logging
 logging.basicConfig(filename='glm_parser.log',
                     level=logging.DEBUG,
@@ -22,7 +16,9 @@ class PerceptronLearner():
         self.sentence = 0
         return
 
-    def sequential_learn(self, f_argmax, data_pool=None, max_iter=-1, d_filename=None, dump_freq = 1):
+    def sequential_learn(self, f_argmax, data_pool=None, max_iter=-1,
+                         d_filename=None, dump_freq = 1, sfeats=None,
+                         sbfeats=None):
         if max_iter <= 0:
             max_iter = self.max_iter
 
@@ -33,10 +29,10 @@ class PerceptronLearner():
             logging.debug("Iteration: %d" % i)
             logging.debug("Data size: %d" % len(data_pool.data_list))
 
+            while data_pool.has_next_data():
+                data_instance = data_pool.get_next_data()
                 gold_global_vector = data_instance.gold_global_vector
-                print gold_global_vector.keys()
                 current_global_vector = f_argmax(data_instance, self.sentence)
-                print current_global_vector.keys()
                 self.update_weight(current_global_vector, gold_global_vector)
 
             data_pool.reset_index()
@@ -127,8 +123,7 @@ class PerceptronLearner():
 #                            for mi in range(len(modlist)):
 #                                if label in s:
 #                                    s[label][(headlist[hi], modlist[mi])] = \
-#                                        (str(5, 0, headlist[hi], modlist[mi],
-#                                            label), scoremat[hi, mi])
+#                                        (str(5, 0, headlist[hi], modlist[mi],label), scoremat[hi, mi])
 #                                else:
 #                                    s[label] = {(headlist[hi], modlist[mi]): \
 #                                         (str(5, 0, headlist[hi], modlist[mi],

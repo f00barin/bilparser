@@ -1,7 +1,4 @@
 from __future__ import division
-import shelve
-import os.path
-import sqlite3
 import logging
 
 logging.basicConfig(filename='glm_parser.log',
@@ -16,6 +13,7 @@ class Evaluator():
         self.labeled_correct_num = 0
         self.unlabeled_gold_set_size = 0
         self.labeled_gold_set_size = 0
+        self.sentno = 0
         return
 
     def reset(self):
@@ -66,20 +64,14 @@ class Evaluator():
 
         return correct_num, gold_set_size
 
-    def evaluate(self, data_pool, parser, w_vector, training_time):
-#        if os.path.isfile('example.db'):
-#            print 'haha'
-#        else:
-#            db = sqlite3.connect('example.db')
-#            cur = db.cursor()
-#            cur.execute("create table test(x)")
-#            db.commit()
-#
+    def evaluate(self, data_pool, parser, w_vector, training_time, sfeats,
+                 sbfeats):
+
 
         logging.debug("Start evaluating ...")
         while data_pool.has_next_data():
             sent = data_pool.get_next_data()
-
+            self.sentno += 1
             logging.debug("data instance: ")
             logging.debug(sent.get_word_list())
             logging.debug(sent.get_edge_list())
@@ -87,9 +79,10 @@ class Evaluator():
             gold_edge_set = \
                 set([(head_index,dep_index) for head_index,dep_index,_ in sent.get_edge_list()])
 
-            sent_len = len(sent.get_word_list())
+#            sent_len = len(sent.get_word_list())
             test_edge_set = \
-               parser.parse(sent, w_vector.get_vector_score)
+               parser.parse(sent, w_vector.get_best_label_score, self.sentno,
+                            sfeats, sbfeats)
             #print sent.get_edge_list()
 
             self.unlabeled_accuracy(test_edge_set, gold_edge_set, True)

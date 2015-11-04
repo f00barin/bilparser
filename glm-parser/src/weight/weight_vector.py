@@ -7,15 +7,8 @@
 # (Please add on your name if you have authored this file)
 #
 
-#import cPickle as pickle
 #import sys
-import numpy as np
-#import sqlite3
-import shelve
-import os.path
-
 from debug.debug import local_debug_flag
-
 if local_debug_flag is False:
     from hvector._mycollections import mydefaultdict
     from hvector.mydouble import mydouble
@@ -88,72 +81,38 @@ class WeightVector():
 #        return score
 
     def get_best_label_score(self, fullvec):
-#    def get_vector_score(self, fv, label):
         bestlabel = None
         bestscore = None
         fv = fullvec[0]
-        h, m = fullvec[2]
-        ssno = fullvec[3]
-#        if os.path.isfile('training.db'):
-#            db = sqlite3.connect('training.db')
-#            s = shelve.open('training.db', writeback=True)
-#        else:
-        s = shelve.open('training.db', flag='c', writeback=True)
-        if str(ssno) in s:
-            s[str(ssno)][(h,m)] = fv
-        else:
-            s[str(ssno)] = {(h,m): fv}
-        s.sync()
-        s.close()
-#            db = sqlite3.connect('training.db')
-#            cur = db.cursor()
-#            cur.execute('''CREATE TABLE features (sentno integer,  head
-#                        integer, mod integer, feats text)''')
-#            db.commit()
-#        cur = db.cursor()
-#        cur.execute("INSERT INTO features VALUES (?,?,?,?)",
-#                    (ssno, h, m, '###join###'.join(fv)))
-#        db.commit()
+        (head, mod) = fullvec[1]
+        sbdict = fullvec[4]
 
-
-
-#        h = fullvec[1][0]
-#        m = fullvec[1][1]
-#        hm = np.random.rand(11)
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
-#            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
-#            for val in xrange(1,6):
-#                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
-#            for val in xrange(6,11):
-#                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
-#            #print self.data_dict[l][str((5,0,h,m))]
+            if l in sbdict:
+                if (head, mod) in sbdict[l]:
+                    score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
         return bestscore, bestlabel
 
     def get_vector_score(self, fullvec):
-#    def get_vector_score(self, fv, label):
         bestlabel = None
         bestscore = None
         fv = fullvec[0]
-#        h = fullvec[1][0]
-#        m = fullvec[1][1]
-#        hm = np.zeros(11)
+        (head, mod) = fullvec[1]
+        sbdict = fullvec[4]
+
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
-#            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
-#            for val in xrange(1,6):
-#                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
-#            for val in xrange(6,11):
-#                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
-#            #print self.data_dict[l][str((5,0,h,m))]
+            if l in sbdict:
+                if (head, mod) in sbdict[l]:
+                    score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
         return bestscore, bestlabel
-
 
 
 
@@ -215,3 +174,24 @@ class WeightVector():
         fp.close()
         return
 
+##    def get_vector_score(self, fv, label):
+#        bestlabel = None
+#        bestscore = None
+#        fv = fullvec[0]
+##        h = fullvec[1][0]
+##        m = fullvec[1][1]
+##        hm = np.zeros(11)
+#        for l in self.labels:
+#            score = self.data_dict[l].evaluate(fv)
+##            score += self.data_dict[l][str((5,0,h,m,l))] * hm[0]
+##            for val in xrange(1,6):
+##                score += self.data_dict[l][str((5,1,h,l))] * hm[val]
+##            for val in xrange(6,11):
+##                score += self.data_dict[l][str((5,2,m,l))] * hm[val]
+##            #print self.data_dict[l][str((5,0,h,m))]
+#            if bestscore == None or bestscore < score:
+#                bestlabel = l
+#                bestscore = score
+#        return bestscore, bestlabel
+#
+#

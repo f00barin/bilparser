@@ -11,6 +11,7 @@
 
 from data.data_pool import *
 import shelve
+import cPickle
 from evaluate.evaluator import *
 
 from weight.weight_vector import *
@@ -18,7 +19,6 @@ from weight.weight_vector import *
 import debug.debug
 import debug.interact
 
-import timeit
 import time
 
 class GlmParser():
@@ -31,8 +31,9 @@ class GlmParser():
         self.data_path = data_path
         self.w_vector = WeightVector(l_filename)
 
-        self.trainfeats = shelve.open('lw.db', flag='r')
-        self.btfeats = shelve.open('lw.db', flag='r')
+        self.trainfeats = shelve.open('try.db', flag='r')
+#        self.btfeats = shelve.open('try.db', flag='r')
+        self.btfeats = cPickle.load(open('try.db', flag='r'))
 
 
         if fgen is not None:
@@ -73,8 +74,10 @@ class GlmParser():
             test_data_pool = DataPool(test_section, self.data_path, fgen=self.fgen)
         else:
             test_data_pool = self.test_data_pool
-
-        self.evaluator.evaluate(test_data_pool, self.parser, self.w_vector, training_time)
+        sfeats = shelve.open('try.db', flag='r')
+        sbfeats = shelve.open('try.db', flag='r')
+        self.evaluator.evaluate(test_data_pool, self.parser, self.w_vector,
+                                training_time, sfeats, sbfeats)
 
     def printParses(self, training_time,  test_section=[]):
         if not test_section == []:
@@ -90,10 +93,11 @@ class GlmParser():
     def compute_argmax(self, sentence, sentno):
         current_edge_set = self.parser.parse(sentence,
                                              self.w_vector.get_best_label_score,
-                                             sentno)
+                                             sentno, self.trainfeats,
+                                             self.btfeats)
 
 #        print current_edge_set
-        sentence.set_current_global_vector(current_edge_set)
+        sentence.set_current_global_vector(current_edge_set, self.btfeats)
         current_global_vector = sentence.current_global_vector
 
         return current_global_vector

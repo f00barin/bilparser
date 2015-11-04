@@ -8,8 +8,6 @@
 #
 
 #import copy
-import timeit
-import numpy as np
 from feature.feature_vector import FeatureVector
 
 """
@@ -82,7 +80,8 @@ class Sentence():
     +=======================================================================+
     """
 
-    def __init__(self, word_list, pos_list=None, edge_set=None, fgen=None):
+    def __init__(self, word_list, pos_list=None, edge_set=None, fgen=None,
+                 sbdict={}):
         """
         Initialize a dependency tree. If you provide a sentence then the
         initializer could store it as tree nodes. If no initlization parameter
@@ -119,7 +118,7 @@ class Sentence():
 
         # Pre-compute the set of gold features
         self.gold_global_vector = self.get_global_vector(self.labeled_edges,
-                                                         self.word_list)
+                                                         self.word_list, sbdict)
 
         # During initialization is has not been known yet. We will fill this later
         self.current_global_vector = None
@@ -127,7 +126,7 @@ class Sentence():
         self.set_second_order_cache()
         return
 
-    def set_current_global_vector(self, edge_list):
+    def set_current_global_vector(self, edge_list, sbdict):
 #        print self.word_list
         """
         This is similar to caching the gold global vector. Current global vector
@@ -141,7 +140,7 @@ class Sentence():
         :param edge_list: Return value from parser
         :return: None
         """
-        self.current_global_vector = self.get_global_vector(edge_list,self.word_list)
+        self.current_global_vector = self.get_global_vector(edge_list,self.word_list, sbdict)
         #~self.cache_feature_for_edge_list(edge_list)
 
         return
@@ -163,32 +162,24 @@ class Sentence():
     #~    self.f_gen.cache_feature_for_edge_list(edge_list)
     #~    return
 
-    def convert_list_vector_to_dict(self, fv, edge_list, word_list):
+    def convert_list_vector_to_dict(self, fv, edge_list, word_list, sbdict):
         ret_fv = {}
         for key,val in fv.iteritems():
             push_fv = FeatureVector()
             for i in val:
                 push_fv[i] += 1
             for h,m,l in edge_list:
-                if l == key:
-                    #hm = hmdict[(word_list[h],word_list[m])]
-                    hm = np.zeros(11)
-                    push_fv[str((5,0,word_list[h],word_list[m],l))] = hm[0]
-                    for val in xrange(1,6):
-                        push_fv[str((5,1,word_list[h],l))] = hm[val]
-                    for val in xrange(6,11):
-                        push_fv[str((5,2,word_list[m],l))] = hm[val]
+                if l in sbdict:
+                    head = word_list[h]
+                    mod = word_list[m]
+                    if (head,mod) in sbdict[l]:
+                        push_fv[str((5, 0, head, mod,l))] = sbdict[l][(head,mod)]
             ret_fv[key] = push_fv
         return ret_fv
 
-#        ret_fv = FeaturetureVector()
-#        for i in fv:
-#            ret_fv[i] += 1
-#        return ret_fv
-
 
     # Both 1st and 2nd order
-    def get_global_vector(self, edge_list, word_list):
+    def get_global_vector(self, edge_list, word_list, sbdict):
         """
         Calculate the global vector with the current weight, the order of the feature
         score is the same order as the feature set
@@ -204,17 +195,20 @@ class Sentence():
         global_vector = self.f_gen.recover_feature_from_edges(edge_list)
 #        print global_vector.keys()
 #        print bobob['AMOD']
-        return self.convert_list_vector_to_dict(global_vector, edge_list, word_list)
+        return self.convert_list_vector_to_dict(global_vector, edge_list,
+                                                word_list, sbdict)
         #return global_vector
 
 
     def get_local_vector(self,
-                         sdict,
                          head_index,
                          dep_index,
                          sentno,
+                         sfeats,
+                         sbfeats,
                          another_index_list = [],
-                         feature_type = 0):
+                         feature_type = 0,
+                         ):
         """
         Return local vector from fgen
 
@@ -229,15 +223,15 @@ class Sentence():
         FeatureGenerator.get_second_order_local_vector() doc string.
 
         """
-        lv = sdict[str(sentno)][(head_index, dep_index)]
-#        lv = self.f_gen.get_local_vector(head_index,
-#                                         dep_index,
-#                                         another_index_list,
-#                                         feature_type)
+#        lv = sfeats[str(sentno)][(head_index, dep_index)]
+        lv = self.f_gen.get_local_vector(head_index,
+                                         dep_index,
+                                         another_index_list,
+                                         feature_type)
 
 #        print (self.word_list[head_index], self.word_list[dep_index])
 
-        return lv, (self.word_list[head_index], self.word_list[dep_index]),(head_index, dep_index), sentno
+        return lv, (self.word_list[head_index], self.word_list[dep_index]),(head_index, dep_index), sentno, sbfeats
 
     '''
     def get_second_order_local_vector(self, head_index, dep_index,
