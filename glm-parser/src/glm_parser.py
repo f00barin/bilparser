@@ -31,9 +31,9 @@ class GlmParser():
         self.data_path = data_path
         self.w_vector = WeightVector(l_filename)
 
-        self.trainfeats = shelve.open('try.db', flag='r')
+        self.trainfeats = shelve.open('TRAINING.db', flag='r')
 #        self.btfeats = shelve.open('try.db', flag='r')
-        self.btfeats = cPickle.load(open('try.db', flag='r'))
+        self.btfeats = cPickle.load(open('biltrainfeats.pkl', 'rb'))
 
 
         if fgen is not None:
@@ -74,10 +74,10 @@ class GlmParser():
             test_data_pool = DataPool(test_section, self.data_path, fgen=self.fgen)
         else:
             test_data_pool = self.test_data_pool
-        sfeats = shelve.open('try.db', flag='r')
-        sbfeats = shelve.open('try.db', flag='r')
+        sfeats = shelve.open('VALIDATION.db', flag='r')
+        sbfeats = shelve.open('vbfeatures.db', flag='r')
         self.evaluator.evaluate(test_data_pool, self.parser, self.w_vector,
-                                training_time, sfeats, sbfeats)
+                                training_time, sfeats, self.btfeats)
 
     def printParses(self, training_time,  test_section=[]):
         if not test_section == []:

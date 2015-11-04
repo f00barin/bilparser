@@ -91,7 +91,8 @@ class WeightVector():
             score = self.data_dict[l].evaluate(fv)
             if l in sbdict:
                 if (head, mod) in sbdict[l]:
-                    score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
+                    if str((5,0,head, mod, l)) in self.data_dict[l]:
+                        score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
@@ -108,7 +109,8 @@ class WeightVector():
             score = self.data_dict[l].evaluate(fv)
             if l in sbdict:
                 if (head, mod) in sbdict[l]:
-                    score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
+                        if str((5,0,head, mod, l)) in self.data_dict[l]:
+                            score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
