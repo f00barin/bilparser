@@ -9,6 +9,7 @@
 
 #import sys
 from debug.debug import local_debug_flag
+import datetime
 if local_debug_flag is False:
     from hvector._mycollections import mydefaultdict
     from hvector.mydouble import mydouble
@@ -62,6 +63,7 @@ class WeightVector():
         self.data_dict = {}
 #        self.data_dict = mydefaultdict(mydouble)
         self.labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
+#        self.labels = ['AMOD','NMOD','PMOD','SBAR','VMOD']
         for l in self.labels:
             self.data_dict[l] = mydefaultdict(mydouble)
         if not filename == None:
@@ -86,13 +88,18 @@ class WeightVector():
         fv = fullvec[0]
         (head, mod) = fullvec[1]
         sbdict = fullvec[4]
-
+        import re
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
+#            for k in self.data_dict[l].iterkeys():
+#                print k, self.data_dict[l][k]
+#            if l in ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']:
+##            if l in ['OBJ','SUB','VC','VMOD'] :
             if l in sbdict:
                 if (head, mod) in sbdict[l]:
-                    if str((5,0,head, mod, l)) in self.data_dict[l]:
-                        score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
+                    if str((5, 0, l)) in self.data_dict[l]:
+#                        if sbdict[l][(head, mod)] > 0:
+                        score += (self.data_dict[l][str((5, 0, l))] * sbdict[l][(head,mod)])
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
@@ -107,10 +114,11 @@ class WeightVector():
 
         for l in self.labels:
             score = self.data_dict[l].evaluate(fv)
-            if l in sbdict:
-                if (head, mod) in sbdict[l]:
-                        if str((5,0,head, mod, l)) in self.data_dict[l]:
-                            score += (self.data_dict[l][str((5,0,head, mod, l))] * sbdict[l][(head,mod)])
+            if l in ['AMOD','NMOD','PMOD','VMOD']:
+                if l in sbdict:
+                    if (head, mod) in sbdict[l]:
+                            if str((5,0,head, mod, l)) in self.data_dict[l]:
+                                score += (self.data_dict[l][str((5,0,l))] * sbdict[l][(head,mod)])
             if bestscore == None or bestscore < score:
                 bestlabel = l
                 bestscore = score
@@ -129,9 +137,11 @@ class WeightVector():
         logging.debug("Loading Weight Vector from %s " % filename)
         fp = open(filename,"r")
         for line in fp:
-            line = line[:-1]
-            line = line.split("    ")
-            self.data_dict[line[0]] = float(line[1])
+            label, key, val = line.strip().split('\t')
+            if label in self.data_dict:
+                self.data_dict[label].update({key: val})
+            else:
+                print 'something is wrong'
         #print self.data_dict
     #self.data_dict = pickle.load(fp)
         fp.close()
@@ -166,12 +176,16 @@ class WeightVector():
         if filename == None:
             print "Skipping dump ..."
             return
+        else:
+            filename = filename + datetime.datetime.now().strftime("%H%M%f")
 
         logging.debug("Dumping Weight Vector to %s " % filename)
         logging.debug("Total Feature Num: %d " % len(self.data_dict))
         fp = open(filename,"w")
-        for key in self.data_dict.keys():
-            fp.write(str(key) + "    " + str(self.data_dict[key]) + "\n")
+        for KEY, VAL  in self.data_dict.items():
+            for key, value in VAL.items(): 
+                fp.write('%s\t%s\t%s\n' % (KEY, key, value))
+#                fp.write(str(key) + "    " + str(self.data_dict[key]) + "\n")
         #pickle.dump(self.data_dict,fp,-1)
         fp.close()
         return

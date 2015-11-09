@@ -31,9 +31,17 @@ class GlmParser():
         self.data_path = data_path
         self.w_vector = WeightVector(l_filename)
 
-        self.trainfeats = shelve.open('TRAINING.db', flag='r')
-#        self.btfeats = shelve.open('try.db', flag='r')
-        self.btfeats = cPickle.load(open('biltrainfeats.pkl', 'rb'))
+        self.trainfeats = shelve.open('/home/usuaris/pranava/bilparser/glm-parser/src/TRAINING.db', flag='r')
+#        self.btfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/biltrainfeats.pkl', 'rb'))
+        self.sfeats = shelve.open('/home/usuaris/pranava/bilparser/glm-parser/src/VALIDATION.db', flag='r')
+#        self.sbfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/vbfeatures.pkl', 'rb'))
+
+        self.btfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/trainingl2.pkl', 'rb'))
+        self.sbfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/validatl2.pkl', 'rb'))
+#        self.btfeats = {}
+#        self.trainfeats = {}
+#        self.sfeats = {}
+#        self.sbfeats = {}
 
 
         if fgen is not None:
@@ -55,8 +63,17 @@ class GlmParser():
 
         self.evaluator = Evaluator()
 
+    def evaluate(self, training_time,  test_section=[]):
+        if not test_section == []:
+            test_data_pool = DataPool(test_section, self.data_path, fgen=self.fgen)
+        else:
+            test_data_pool = self.test_data_pool
+        self.evaluator.evaluate(test_data_pool, self.parser, self.w_vector,
+                                training_time, self.sfeats, self.sbfeats)
+
+
     def sequential_train(self, train_section=[], max_iter=-1, d_filename=None,
-                         dump_freq = 1):
+                         dump_freq = 1, test_section=[]):
         if not train_section == []:
             train_data_pool = DataPool(train_section, self.data_path, fgen=self.fgen)
         else:
@@ -64,20 +81,12 @@ class GlmParser():
 
         if max_iter == -1:
             max_iter = self.max_iter
-
-        self.learner.sequential_learn(self.compute_argmax, train_data_pool,
-                                      max_iter, d_filename, dump_freq,
-                                      self.trainfeats, self.btfeats)
-
-    def evaluate(self, training_time,  test_section=[]):
         if not test_section == []:
             test_data_pool = DataPool(test_section, self.data_path, fgen=self.fgen)
-        else:
-            test_data_pool = self.test_data_pool
-        sfeats = shelve.open('VALIDATION.db', flag='r')
-        sbfeats = shelve.open('vbfeatures.db', flag='r')
-        self.evaluator.evaluate(test_data_pool, self.parser, self.w_vector,
-                                training_time, sfeats, self.btfeats)
+        self.learner.sequential_learn(self.compute_argmax, train_data_pool,
+                                      max_iter, d_filename, dump_freq,
+                                      self.trainfeats, self.btfeats, test_data_pool, self.parser, 
+                                      self.sfeats, self.sbfeats)
 
     def printParses(self, training_time,  test_section=[]):
         if not test_section == []:
@@ -281,6 +290,8 @@ if __name__ == "__main__":
                          'force-feature-order=', 'interactive',
                          'log-feature-request']
         opts, args = getopt.getopt(sys.argv[1:], opt_spec, long_opt_spec)
+
+        print '=========================='
         for opt, value in opts:
             if opt == "-h":
                 print("")
@@ -345,13 +356,13 @@ if __name__ == "__main__":
         training_time = None
         if train_end >= train_begin >= 0:
             start_time = time.clock()
-            gp.sequential_train([(train_begin, train_end)], max_iter, d_filename, dump_freq)
+            gp.sequential_train([(train_begin, train_end)], max_iter, d_filename, dump_freq, testsection)
             end_time = time.clock()
             training_time = end_time - start_time
 
-        if not testsection == []:
-            gp.evaluate(training_time, testsection)
-
+#        if not testsection == []:
+#            gp.evaluate(training_time, testsection)
+#
     except getopt.GetoptError, e:
         print("Invalid argument. \n")
         print(HELP_MSG)

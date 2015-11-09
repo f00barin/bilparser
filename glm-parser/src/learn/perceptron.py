@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #import os.path
+import time
 import logging
+from evaluate.evaluator import *
 logging.basicConfig(filename='glm_parser.log',
                     level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s: %(message)s',
@@ -14,11 +16,12 @@ class PerceptronLearner():
         self.w_vector = w_vector
         self.max_iter = max_iter
         self.sentence = 0
+        self.evaluator = Evaluator()
         return
 
     def sequential_learn(self, f_argmax, data_pool=None, max_iter=-1,
                          d_filename=None, dump_freq = 1, sfeats=None,
-                         sbfeats=None):
+                         sbfeats=None, test_data=[], parser=None, tfeats=None, tbfeats=None):
         if max_iter <= 0:
             max_iter = self.max_iter
 
@@ -28,16 +31,26 @@ class PerceptronLearner():
         for i in range(max_iter):
             logging.debug("Iteration: %d" % i)
             logging.debug("Data size: %d" % len(data_pool.data_list))
-
+            self.sentence = 0
+            start_time = time.clock()
             while data_pool.has_next_data():
                 self.sentence += 1
-                print self.sentence
+                print 'iteration: ', i, '; sent no.: ', self.sentence
                 data_instance = data_pool.get_next_data()
                 gold_global_vector = data_instance.gold_global_vector
                 current_global_vector = f_argmax(data_instance, self.sentence)
                 self.update_weight(current_global_vector, gold_global_vector)
-
             data_pool.reset_index()
+            if not test_data == []:
+                end_time = time.clock()
+                ttime = end_time - start_time
+                self.evaluator.evaluate(test_data, parser, self.w_vector, ttime,tfeats, tbfeats) 
+
+#                print gold_global_vector['NMOD']
+#                if 'OBJ' in current_global_vector:
+#                    print current_global_vector['OBJ']
+
+
             if d_filename is not None:
                 if i % dump_freq == 0 or i == max_iter - 1:
                     self.w_vector.dump(d_filename + "_Iter_%d.db"%i)

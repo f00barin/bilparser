@@ -163,17 +163,35 @@ class Sentence():
     #~    return
 
     def convert_list_vector_to_dict(self, fv, edge_list, word_list, sbdict):
+        import re 
         ret_fv = {}
         for key,val in fv.iteritems():
             push_fv = FeatureVector()
+#            print key
             for i in val:
-                push_fv[i] += 1
-            for h,m,l in edge_list:
-                if l in sbdict:
-                    head = word_list[h]
-                    mod = word_list[m]
-                    if (head,mod) in sbdict[l]:
-                        push_fv[str((5, 0, head, mod,l))] = sbdict[l][(head,mod)]
+#                print i
+                if re.match('\(5, 0*', i):
+                    fname, h, m, l = i.split('#ELE#')
+                    if l == key:
+                        if l in ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']:
+#                        if l in ['OBJ','SUB','VC','VMOD']:
+                            if l in sbdict:
+                                if (h, m) in sbdict[l]:
+#                                    if sbdict[l][(h, m)] > 0:
+#                                        push_fv[fname] += 1 
+                                    push_fv[fname] += sbdict[l][(h, m)]
+#                                    else:
+#                                        push_fv[fname] += -1 
+                else:
+                    push_fv[i] += 1
+#            for h,m,l in edge_list:
+#                if l in ['OBJ','SUB','VC','VMOD']:
+#                if l in ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']:
+#                   if l in sbdict:
+#                       head = word_list[h]
+#                        mod = word_list[m]
+#                        if (head,mod) in sbdict[l]:
+#                            push_fv[str((5, 0, l))] += sbdict[l][(head,mod)]
             ret_fv[key] = push_fv
         return ret_fv
 
@@ -192,7 +210,7 @@ class Sentence():
         :return: The global vector of the sentence with the current weight
         :rtype: list
         """
-        global_vector = self.f_gen.recover_feature_from_edges(edge_list)
+        global_vector = self.f_gen.recover_feature_from_edges(edge_list, word_list)
 #        print global_vector.keys()
 #        print bobob['AMOD']
         return self.convert_list_vector_to_dict(global_vector, edge_list,

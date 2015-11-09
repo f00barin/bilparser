@@ -37,11 +37,11 @@ class Evaluator():
         correct_num = len(intersect_set)
         gold_set_size = len(gold_edge_set)
 
-        logging.debug("result edge set: ")
-        logging.debug(result_edge_set)
-        logging.debug("gold edge set: ")
-        logging.debug(gold_edge_set)
-        logging.debug("##############")
+#        logging.debug("result edge set: ")
+#        logging.debug(result_edge_set)
+#        logging.debug("gold edge set: ")
+#        logging.debug(gold_edge_set)
+#        logging.debug("##############")
 
         return correct_num, gold_set_size
 
@@ -56,11 +56,11 @@ class Evaluator():
         correct_num = len(intersect_set)
         gold_set_size = len(gold_edge_set)
 
-        logging.debug("result labelled edge set: ")
-        logging.debug(result_edge_set)
-        logging.debug("gold labelled edge set: ")
-        logging.debug(gold_edge_set)
-        logging.debug("##############")
+#        logging.debug("result labelled edge set: ")
+#        logging.debug(result_edge_set)
+#        logging.debug("gold labelled edge set: ")
+#        logging.debug(gold_edge_set)
+#        logging.debug("##############")
 
         return correct_num, gold_set_size
 
@@ -72,9 +72,9 @@ class Evaluator():
         while data_pool.has_next_data():
             sent = data_pool.get_next_data()
             self.sentno += 1
-            logging.debug("data instance: ")
-            logging.debug(sent.get_word_list())
-            logging.debug(sent.get_edge_list())
+#            logging.debug("data instance: ")
+#            logging.debug(sent.get_word_list())
+#            logging.debug(sent.get_edge_list())
 
             gold_edge_set = \
                 set([(head_index,dep_index) for head_index,dep_index,_ in sent.get_edge_list()])
@@ -89,7 +89,7 @@ class Evaluator():
             self.labeled_accuracy(test_edge_set, sent.get_edge_list(), True)
         if training_time is not None:
             logging.info("Training time usage(seconds): %f" % (training_time,))
-        logging.info("Feature count: %d" % len(w_vector.data_dict.keys()))
+#        logging.info("Feature count: %d" % len(w_vector.data_dict.keys()))
         logging.info("Unlabeled accuracy: %.12f (%d, %d)" % (self.get_acc_unlabeled_accuracy(), self.unlabeled_correct_num, self.unlabeled_gold_set_size))
         logging.info("labeled accuracy: %.12f (%d, %d)" % (self.get_acc_labeled_accuracy(), self.labeled_correct_num, self.labeled_gold_set_size))
 
@@ -149,7 +149,7 @@ class Evaluator():
 
             self.unlabeled_gold_set_size += gold_set_size
             #gold_set_size = self.unlabeled_gold_set_size
-            logging.debug("Correct_num: %d, Gold set size: %d, Unlabeled correct: %d, Unlabeled gold set size: %d" % (correct_num, gold_set_size, self.unlabeled_correct_num, self.unlabeled_gold_set_size))
+#            logging.debug("Correct_num: %d, Gold set size: %d, Unlabeled correct: %d, Unlabeled gold set size: %d" % (correct_num, gold_set_size, self.unlabeled_correct_num, self.unlabeled_gold_set_size))
 
         # WARNING: this function returns a value but the caller does not use it!
         return correct_num / gold_set_size
@@ -208,7 +208,7 @@ class Evaluator():
 
             self.labeled_gold_set_size += gold_set_size
             #gold_set_size = self.unlabeled_gold_set_size
-            logging.debug("Correct_num: %d, Gold set size: %d, labeled correct: %d, labeled gold set size: %d" % (correct_num, gold_set_size, self.labeled_correct_num, self.labeled_gold_set_size))
+#            logging.debug("Correct_num: %d, Gold set size: %d, labeled correct: %d, labeled gold set size: %d" % (correct_num, gold_set_size, self.labeled_correct_num, self.labeled_gold_set_size))
 
         # WARNING: this function returns a value but the caller does not use it!
         return correct_num / gold_set_size

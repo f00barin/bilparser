@@ -327,7 +327,7 @@ class FirstOrderFeatureGenerator(feature_generator_base.FeatureGeneratorBase):
 
         return map(str, fv)
 
-    def recover_feature_from_edges(self, edge_list):
+    def recover_feature_from_edges(self, edge_list, word_list):
         """
         Return a feature vector instance containing the features
         implied by edge list
@@ -339,9 +339,11 @@ class FirstOrderFeatureGenerator(feature_generator_base.FeatureGeneratorBase):
 
 #            print word_list[head], word_list[dep]
             if label in fv:
-                fv[label] += self.get_local_vector(head, dep) #+ [np.dot(np.random.rand(10), np.random.rand(10))]
+                fv[label] += self.get_local_vector(head, dep) + [str((5, 0, label))+'#ELE#'+word_list[head]+'#ELE#'+word_list[dep]+'#ELE#'+label]
             else:
-                fv[label] = self.get_local_vector(head, dep) #+ [np.dot(np.random.rand(10), np.random.rand(10))]
+                fv[label] = self.get_local_vector(head, dep) + [str((5, 0, label))+'#ELE#'+word_list[head]+'#ELE#'+word_list[dep]+'#ELE#'+label]
+                
+                #+ [np.dot(np.random.rand(10), np.random.rand(10))]
         
         return fv
 

@@ -27,13 +27,14 @@ class AveragePerceptronLearner():
         logging.debug("Initialize AveragePerceptronLearner ... ")
         self.w_vector = w_vector
         self.max_iter = max_iter
-        
+        self.labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
         self.weight_sum_dict = mydefaultdict(mydouble)
         self.last_change_dict = mydefaultdict(mydouble)
         self.c = 1
+        self.sentence = 0
         return
 
-    def sequential_learn(self, f_argmax, data_pool=None, max_iter=-1, d_filename=None, dump_freq = 1):
+    def sequential_learn(self, f_argmax, data_pool=None, max_iter=-1, d_filename=None, dump_freq = 1, sfeats=None, sbfeats=None,test_data=[], parser=None, tfeats=None, tbfeats=None):
         if max_iter <= 0:
             max_iter = self.max_iter
 
@@ -57,11 +58,13 @@ class AveragePerceptronLearner():
                 sentence_count += 1
                 # Calculate yi' = argmax
                 data_instance = data_pool.get_next_data()
+                self.sentence += 1 
+                print self.sentence
                 gold_global_vector = data_instance.gold_global_vector
 
                 if debug.debug.time_accounting_flag is True:
                     before_time = time.clock()
-                    current_global_vector = f_argmax(data_instance)
+                    current_global_vector = f_argmax(data_instance, self.sentence)
                     after_time = time.clock()
                     time_usage = after_time - before_time
                     argmax_time_total += time_usage
@@ -70,9 +73,12 @@ class AveragePerceptronLearner():
                     logging.debug("Time usage %f" % (time_usage, ))
                 else:
                     # Just run the procedure without any interference
-                    current_global_vector = f_argmax(data_instance)
-
-                delta_global_vector = gold_global_vector - current_global_vector
+                    current_global_vector = f_argmax(data_instance, self.sentence)
+                print gold_global_vector.keys()
+                delta_global_vector = {}
+                for l in self.labels:
+                    if l in gold_global_vector and l in current_global_vector:
+                        delta_global_vector[l] = gold_global_vector[l] - current_global_vector[l]
                 
                 # update every iteration (more convenient for dump)
                 if data_pool.has_next_data():
