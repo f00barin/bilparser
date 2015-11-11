@@ -31,17 +31,17 @@ class GlmParser():
         self.data_path = data_path
         self.w_vector = WeightVector(l_filename)
 
-        self.trainfeats = shelve.open('/home/usuaris/pranava/bilparser/glm-parser/src/TRAINING.db', flag='r')
+#        self.trainfeats = shelve.open('/home/usuaris/pranava/bilparser/glm-parser/src/TRAINING.db', flag='r')
 #        self.btfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/biltrainfeats.pkl', 'rb'))
-        self.sfeats = shelve.open('/home/usuaris/pranava/bilparser/glm-parser/src/VALIDATION.db', flag='r')
+#        self.sfeats = shelve.open('/home/usuaris/pranava/bilparser/glm-parser/src/VALIDATION.db', flag='r')
 #        self.sbfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/vbfeatures.pkl', 'rb'))
 
-        self.btfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/trainingl2.pkl', 'rb'))
-        self.sbfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/validatl2.pkl', 'rb'))
-#        self.btfeats = {}
-#        self.trainfeats = {}
-#        self.sfeats = {}
-#        self.sbfeats = {}
+#        self.btfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/trainingl1.pkl', 'rb'))
+#        self.sbfeats = cPickle.load(open('/home/usuaris/pranava/bilparser/glm-parser/src/validatl1.pkl', 'rb'))
+        self.btfeats = {}
+        self.trainfeats = {}
+        self.sfeats = {}
+        self.sbfeats = {}
 
 
         if fgen is not None:

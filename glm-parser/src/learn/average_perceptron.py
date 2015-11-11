@@ -6,6 +6,7 @@ from hvector.mydouble import mydouble
 from weight.weight_vector import *
 # Time accounting and control
 import debug.debug
+from evaluate.evaluator import *
 import time
 import sys
 
@@ -28,9 +29,10 @@ class AveragePerceptronLearner():
         self.w_vector = w_vector
         self.max_iter = max_iter
         self.labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
-        self.weight_sum_dict = mydefaultdict(mydouble)
-        self.last_change_dict = mydefaultdict(mydouble)
+        self.weight_sum_dict = dict.fromkeys(self.labels, mydefaultdict(mydouble))
+        self.last_change_dict = dict.fromkeys(self.labels, mydefaultdict(mydouble))
         self.c = 1
+        self.evaluator = Evaluator()
         self.sentence = 0
         return
 
@@ -41,8 +43,9 @@ class AveragePerceptronLearner():
         logging.debug("Starting sequential train ... ")
 
         # sigma_s
-        self.weight_sum_dict.clear()
-        self.last_change_dict.clear()
+        for l in self.labels:
+            self.weight_sum_dict[l].clear()
+            self.last_change_dict[l].clear()
         self.c = 1
 
         # for t = 1 ... T
@@ -52,6 +55,7 @@ class AveragePerceptronLearner():
             sentence_count = 1
             argmax_time_total = 0.0
 
+            start_time = time.clock()
             # for i = 1 ... m
             while data_pool.has_next_data():
                 print("Iteration: %d, Sentence %d" % (t, sentence_count))
@@ -74,33 +78,40 @@ class AveragePerceptronLearner():
                 else:
                     # Just run the procedure without any interference
                     current_global_vector = f_argmax(data_instance, self.sentence)
-                print gold_global_vector.keys()
                 delta_global_vector = {}
                 for l in self.labels:
                     if l in gold_global_vector and l in current_global_vector:
                         delta_global_vector[l] = gold_global_vector[l] - current_global_vector[l]
+                    elif l in gold_global_vector and l not in current_global_vector: 
+                        delta_global_vector[l] = gold_global_vector[l]
+                    elif l not in gold_global_vector and l in current_global_vector:
+                        delta_global_vector[l] =  current_global_vector[l] - current_global_vector[l] - current_global_vector[l]
+
                 
                 # update every iteration (more convenient for dump)
                 if data_pool.has_next_data():
                     # i yi' != yi
-                    if not current_global_vector == gold_global_vector:
-                        # for each element s in delta_global_vector
-                        for s in delta_global_vector.keys():
-                            self.weight_sum_dict[s] += self.w_vector[s] * (self.c - self.last_change_dict[s])
-                            self.last_change_dict[s] = self.c
-                        
-                        # update weight and weight sum
-                        self.w_vector.data_dict.iadd(delta_global_vector.feature_dict)
-                        self.weight_sum_dict.iadd(delta_global_vector.feature_dict)
+                    for l in delta_global_vector.keys():
+                        if l not in current_global_vector or l not in gold_global_vector or not current_global_vector[l] == gold_global_vector[l]:
+                            # for each element s in delta_global_vector
+                            for s in delta_global_vector[l].keys():
+                                self.weight_sum_dict[l][s] += self.w_vector[l][s] * (self.c - self.last_change_dict[l][s])
+                                self.last_change_dict[l][s] = self.c
+                            
+                            # update weight and weight sum
+                            self.w_vector.data_dict[l].iadd(delta_global_vector[l].feature_dict)
+                            self.weight_sum_dict[l].iadd(delta_global_vector[l].feature_dict)
+
 
                 else:
-                    for s in self.last_change_dict.keys():
-                        self.weight_sum_dict[s] += self.w_vector[s] * (self.c - self.last_change_dict[s])
-                        self.last_change_dict[s] = self.c
-                        
-                    if not current_global_vector == gold_global_vector:
-                        self.w_vector.data_dict.iadd(delta_global_vector.feature_dict)
-                        self.weight_sum_dict.iadd(delta_global_vector.feature_dict)
+                    for l in delta_global_vector.keys():
+                        for s in self.last_change_dict[l].keys():
+                            self.weight_sum_dict[l][s] += self.w_vector[l][s] * (self.c - self.last_change_dict[l][s])
+                            self.last_change_dict[l][s] = self.c
+                            
+                        if l not in current_global_vector or l not in gold_global_vector or not current_global_vector[l] == gold_global_vector[l]:
+                            self.w_vector.data_dict[l].iadd(delta_global_vector[l].feature_dict)
+                            self.weight_sum_dict[l].iadd(delta_global_vector[l].feature_dict)
 
                 self.c += 1
 
@@ -108,18 +119,23 @@ class AveragePerceptronLearner():
                     data_instance.dump_feature_request("%s" % (sentence_count, ))
 
                 # If exceeds the value set in debug config file, just stop and exit
-                # immediately
+                # immediatel y
                 if sentence_count > debug.debug.run_first_num > 0:
                     print("Average time for each sentence: %f" % (argmax_time_total / debug.debug.run_first_num))
                     logging.debug("Average time for each sentence: %f" % (argmax_time_total / debug.debug.run_first_num))
                     data_pool.reset_index()
-                    sentence_count = 1
                     argmax_time_total = 0.0
 
             # End while(data_pool.has_next_data())
 
             # Reset index, while keeping the content intact
             data_pool.reset_index()
+            if not test_data == []:
+                end_time = time.clock()
+                ttime = end_time - start_time
+                self.evaluator.evaluate(test_data, parser, self.w_vector, ttime,tfeats, tbfeats) 
+            sentence_count = 1
+
 
             if d_filename is not None:
                 if t % dump_freq == 0 or t == max_iter - 1:
@@ -129,17 +145,18 @@ class AveragePerceptronLearner():
                 
                     p_fork.start()
                     #self.w_vector.dump(d_filename + "_Iter_%d.db"%t)
-        
-        self.w_vector.data_dict.clear()
+        for l in self.labels: 
+            self.w_vector.data_dict[l].clear()
 
         self.avg_weight(self.w_vector, self.c - 1)
 
         return
 
     def avg_weight(self, w_vector, count):
-        if count > 0:
-            w_vector.data_dict.iaddc(self.weight_sum_dict, 1 / count)
-        
+        for l in self.labels:
+            if count > 0:
+                w_vector.data_dict[l].iaddc(self.weight_sum_dict[l], 1 / count)
+            
     def dump_vector(self, d_filename, i):
         d_vector = WeightVector()
         self.avg_weight(d_vector, self.c-1)

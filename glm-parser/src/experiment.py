@@ -57,68 +57,86 @@ def getnbestelement(d, n):
     return set(retlist)
 
 def extractrelindo(data, hmlmat, trainhset, trainmset, trainhmset, trainhmlset, fulllist=[]):
-    labels = ['AMOD','DEP','NMOD','OBJ','PMOD','PRD','SBAR','SUB','VC','VMOD']
-    for instance in data:
-        goldlist = instance[0]
-        wlist = instance[1]
-        
-        ldict = dict.fromkeys(labels, {})
-        tmparr = []
-        for (h,m) in permutations(wlist, 2):
-            for l in labels:
-                if (h,m) in hmlmat[l]:
-                    ldict[l].update({(h,m): hmlmat[l][(h,m)]})
-        for (h, m, l) in goldlist:
-            if l in labels:
-                if h in trainhset:
-                    tmparr.append(1)
-                else:
-                    tmparr.append(0)
-                if m in trainmset:
-                    tmparr.append(1)
-                else:
-                    tmparr.append(0)
-                if (h,m) in trainhmset:
-                    tmparr.append(1)
-                else:
-                    tmparr.append(0)
-                if (h,m,l) in trainhmlset:
-                    tmparr.append(1)
-                else:
-                    tmparr.append(0)
-                if (h,m) in hmlmat[l]:
-                    if hmlmat[l][(h,m)] >= 0: 
+    lab = ['AMOD','DEP','NMOD','OBJ','PMOD','PRD','SBAR','SUB','VC','VMOD']
+#    labels = ['OBJ','SUB','VC','VMOD']
+    for l in lab:
+        labels = [l]
+        for instance in data:
+            goldlist = instance[0]
+            wlist = instance[1]
+            
+            ldict = dict.fromkeys(labels, {})
+            tmparr = []
+            for (h,m) in permutations(wlist, 2):
+                for l in labels:
+                    if (h,m) in hmlmat[l]:
+                        ldict[l].update({(h,m): hmlmat[l][(h,m)]})
+            for (h, m, l) in goldlist:
+                if l in labels:
+                    if h in trainhset:
                         tmparr.append(1)
                     else:
                         tmparr.append(0)
-                    if hmlmat[l][(h,m)] < 0:
+                    if m in trainmset:
                         tmparr.append(1)
                     else:
                         tmparr.append(0)
-                    if (h,m) in getnbestelement(ldict[l],1):
+                    if (h,m) in trainhmset:
                         tmparr.append(1)
                     else:
-                        tmparr.append(0) 
-                    if len(ldict[l].keys()) > 3:
-                        try:
-                            if (h,m) in getnbestelement(ldict[l],3):
-                                tmparr.append(1)
-                            else:
-                                tmparr.append(0)
-                        except:
-                            print ldict[l]
-                    else: 
                         tmparr.append(0)
+                    if (h,m,l) in trainhmlset:
+                        tmparr.append(1)
+                    else:
+                        tmparr.append(0)
+                    if (h,m) in hmlmat[l]:
+                        if hmlmat[l][(h,m)] >= 0: 
+                            tmparr.append(1)
+                        else:
+                            tmparr.append(0)
+                        if hmlmat[l][(h,m)] < 0:
+                            tmparr.append(1)
+                        else:
+                            tmparr.append(0)
+                        if (h,m) in getnbestelement(ldict[l],1):
+                            tmparr.append(1)
+                        else:
+                            tmparr.append(0) 
+                        if len(ldict[l].keys()) > 3:
+                            try:
+                                if (h,m) in getnbestelement(ldict[l],3):
+                                    tmparr.append(1)
+                                else:
+                                    tmparr.append(0)
+                            except:
+                                print ldict[l]
+                        else: 
+                            tmparr.append(0)
+                    else:
+                        tmparr += [-1, -1, -1, -1]
                 else:
-                    tmparr += [-1, -1, -1, -1]
+                    tmparr = [-1, -1, -1, -1, -1, -1, -1, -1]
+                fulllist.append(tmparr)
+                tmparr= []
+        nohmlmat = []
+        nol = []
+        myarr = []
+        for v in fulllist:
+            if not v[:4] == [-1, -1, -1, -1] and v[-4:] == [-1, -1, -1, -1]:
+                nohmlmat.append(v)
+            elif v == [-1, -1, -1, -1, -1, -1, -1, -1]:
+                nol.append(v)
             else:
-                tmparr = [-1, -1, -1, -1, -1, -1, -1, -1]
-            fulllist.append(tmparr)
-            tmparr= []
+                myarr.append(v)
+        print labels[0], len(nohmlmat), len(nol), len(myarr)
+        mymat = np.array(myarr)
+        print 'Label=%s, +ve=%d, -ve=%d, 1-best=%d, 5-best=%d'%(labels[0],mymat[:,4].sum(),mymat[:,5].sum(),mymat[:,6].sum(),mymat[:,7].sum())
+        fulllist = []
     return fulllist
 
 
 arr = extractrelindo(data_list, hmlmat, trainhset, trainmset, trainhmset, trainhmlset, fulllist=[])
+
 
 import cPickle
 cPickle.dump(arr, open('fullarr.pkl', 'wb'))

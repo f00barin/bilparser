@@ -60,12 +60,10 @@ class WeightVector():
         """
 
         # change to hvector
-        self.data_dict = {}
 #        self.data_dict = mydefaultdict(mydouble)
         self.labels = ['AMOD','DEP','NMOD','OBJ','P','PMOD','PRD','ROOT','SBAR','SUB','VC','VMOD']
 #        self.labels = ['AMOD','NMOD','PMOD','SBAR','VMOD']
-        for l in self.labels:
-            self.data_dict[l] = mydefaultdict(mydouble)
+        self.data_dict = dict.fromkeys(self.labels, mydefaultdict(mydouble)) 
         if not filename == None:
             self.load(filename)
 
